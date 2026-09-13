@@ -1,0 +1,19 @@
+# Run with `dart run ffigen --config ffigen.yaml`.
+name: SifarBindings
+description: |
+  FFI bindings for Sifar AES
+
+  Regenerate bindings with `dart run ffigen --config ffigen.yaml`.
+output: 'lib/my_native_wrapper_bindings_generated.dart'
+headers:
+  entry-points:
+    - 'src/sifar_ffi.h'
+  include-directives:
+    - 'src/sifar_ffi.h'
+compiler-opts:
+  - '-I./src'
+  - '-I./include'
+ffi-native:
+comments:
+  style: any
+  length: full
