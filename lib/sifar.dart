@@ -2,6 +2,8 @@ import 'dart:ffi';
 import 'dart:typed_data';
 import 'package:ffi/ffi.dart';
 import 'my_native_wrapper_bindings_generated.dart' as sifar;
+import 'dart:ffi' as ffi;
+import 'my_native_wrapper_bindings_generated.dart' as bindings;
 
 class SifarAes {
   final Pointer<Void> _handle;
@@ -54,5 +56,40 @@ class SifarAes {
   /// Must be called when done to free the C-side key struct.
   void dispose() {
     sifar.aes_destroy_key(_handle);
+  }
+
+
+  
+}
+
+
+class SifarImage {
+  static void encryptImage({
+    required String cipher,
+    required String inputPath,
+    required String outputPath,
+    required Uint8List key,
+  }) {
+    final namePtr = cipher.toNativeUtf8();      // Pointer<Utf8>
+    final inPtr   = inputPath.toNativeUtf8();
+    final outPtr  = outputPath.toNativeUtf8();
+    final keyPtr  = calloc<Uint8>(key.length);
+    keyPtr.asTypedList(key.length).setAll(0, key);
+
+    try {
+      final rc = sifar.encrypt_image_file(
+        namePtr.cast<ffi.Char>(),               // Pointer<Char>
+        inPtr.cast<bindings.uchar_t>(),         // Pointer<uchar_t>
+        outPtr.cast<bindings.uchar_t>(),
+        keyPtr.cast<bindings.uchar_t>(),
+        key.length,
+      );
+      if (rc != 0) throw StateError('encrypt_image_file failed: $rc');
+    } finally {
+      malloc.free(namePtr);
+      malloc.free(inPtr);
+      malloc.free(outPtr);
+      calloc.free(keyPtr);
+    }
   }
 }

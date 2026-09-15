@@ -14,7 +14,7 @@
 
 // #include "../../common/galois_field_op.h"
 // #include "../../common/rijnbox.h"
-#include "../../../include/block_cipher_modes_operation.h"
+#include "../../block_cipher_modes_operation.h"
 
 #define AES_BLOCK_SIZE 16
 

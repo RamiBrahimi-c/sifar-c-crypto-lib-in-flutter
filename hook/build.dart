@@ -40,6 +40,7 @@ void main(List<String> args) async {
         'src/ciphers/symmetric',
         'src/ciphers/classical',
       ],
+      flags: ['-lm'],
     );
 
     await cbuilder.run(

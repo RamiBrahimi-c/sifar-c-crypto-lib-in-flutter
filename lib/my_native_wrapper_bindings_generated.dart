@@ -56,6 +56,26 @@ external ffi.Pointer<ffi.Void> aes_new_key(
 @ffi.Native<ffi.Void Function(ffi.Pointer<ffi.Void>)>()
 external void aes_destroy_key(ffi.Pointer<ffi.Void> k);
 
+/// If you need to allocate a key struct from Dart:
+/// (you'll need to know how big AesKey is — see note below)
+/// size_t aes_key_size(void);
+@ffi.Native<
+  ffi.Int Function(
+    ffi.Pointer<ffi.Char>,
+    ffi.Pointer<uchar_t>,
+    ffi.Pointer<uchar_t>,
+    ffi.Pointer<uchar_t>,
+    ffi.Size,
+  )
+>()
+external int encrypt_image_file(
+  ffi.Pointer<ffi.Char> name,
+  ffi.Pointer<uchar_t> input_path,
+  ffi.Pointer<uchar_t> output_path,
+  ffi.Pointer<uchar_t> _key,
+  int _key_len,
+);
+
 final class AesKey extends ffi.Opaque {}
 
 typedef uchar_t = ffi.UnsignedChar;
