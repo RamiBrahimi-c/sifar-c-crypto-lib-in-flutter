@@ -76,6 +76,23 @@ external int encrypt_image_file(
   int _key_len,
 );
 
+@ffi.Native<
+  ffi.Int Function(
+    ffi.Pointer<ffi.Char>,
+    ffi.Pointer<uchar_t>,
+    ffi.Pointer<uchar_t>,
+    ffi.Pointer<uchar_t>,
+    ffi.Size,
+  )
+>()
+external int decrypt_image_file(
+  ffi.Pointer<ffi.Char> name,
+  ffi.Pointer<uchar_t> input_path,
+  ffi.Pointer<uchar_t> output_path,
+  ffi.Pointer<uchar_t> _key,
+  int _key_len,
+);
+
 final class AesKey extends ffi.Opaque {}
 
 typedef uchar_t = ffi.UnsignedChar;

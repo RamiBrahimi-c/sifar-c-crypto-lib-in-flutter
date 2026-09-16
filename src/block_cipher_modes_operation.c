@@ -88,7 +88,7 @@ void ecb_encrypt(uchar_t *input , uchar_t *output , size_t length , size_t block
     if (t*block_size != length)
     {
         fprintf(stderr , "ERROR: make sure the input is padded or smth cuz length/block_size = %ld/%ld = %f \n" , length , block_size , (float) (length/block_size) ) ;
-        return;
+        // return;
     }
     
     printf("looping from 0 to %ld\n", t);
@@ -109,7 +109,7 @@ void ecb_decrypt(uchar_t *input , uchar_t *output , size_t length , size_t block
     if (t*block_size != length)
     {
         fprintf(stderr , "ERROR: make sure the input is padded or smth cuz length/block_size = %ld/%ld = %f \n" , length , block_size , (float) (length/block_size) ) ;
-        return;
+        // return;
     }
     
 

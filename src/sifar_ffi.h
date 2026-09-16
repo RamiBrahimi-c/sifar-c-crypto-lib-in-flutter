@@ -27,4 +27,9 @@ void aes_destroy_key(void* k) ;
 int encrypt_image_file(char* name, uchar_t* input_path, uchar_t* output_path,
                        uchar_t* _key, size_t _key_len);
 
+
+int decrypt_image_file(char* name, uchar_t* input_path, uchar_t* output_path,
+                       uchar_t* _key, size_t _key_len);
+
+
 #endif
