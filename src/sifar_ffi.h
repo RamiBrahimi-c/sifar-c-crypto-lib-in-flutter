@@ -6,6 +6,11 @@
 
 // Opaque handles — Dart only ever sees pointers to these
 typedef struct AesKey AesKey;
+typedef struct DesKey DesKey;
+typedef struct Rc4Key Rc4Key;
+typedef struct RedpikeKey RedpikeKey;
+typedef struct TeaKey TeaKey;
+typedef struct XTeaKey XTeaKey;
 
 typedef unsigned char uchar_t;
 
@@ -14,6 +19,37 @@ int aes_encrypt(const uchar_t* input, uchar_t* output, int length, const void* k
 int aes_decrypt(const uchar_t* input, uchar_t* output, int length, const void* key);
 int aes_set_key(void* key_struct, const uchar_t* key_str, size_t key_len);
 int aes_free_key(void* key_struct);
+
+// Public AES API — the only things Dart will call
+int des_encrypt(const uchar_t* input, uchar_t* output, int length, const void* key);
+int des_decrypt(const uchar_t* input, uchar_t* output, int length, const void* key);
+int des_set_key(void* key_struct, const uchar_t* key_str, size_t key_len);
+int des_free_key(void* key_struct);
+
+// Public AES API — the only things Dart will call
+int rc4_encrypt(const uchar_t* input, uchar_t* output, int length, const void* key);
+int rc4_decrypt(const uchar_t* input, uchar_t* output, int length, const void* key);
+int rc4_set_key(void* key_struct, const uchar_t* key_str, size_t key_len);
+int rc4_free_key(void* key_struct);
+
+// Public AES API — the only things Dart will call
+int redpike_encrypt(const uchar_t* input, uchar_t* output, int length, const void* key);
+int redpike_decrypt(const uchar_t* input, uchar_t* output, int length, const void* key);
+int redpike_set_key(void* key_struct, const uchar_t* key_str, size_t key_len);
+int redpike_free_key(void* key_struct);
+
+
+// Public AES API — the only things Dart will call
+int tea_encrypt(const uchar_t* input, uchar_t* output, int length, const void* key);
+int tea_decrypt(const uchar_t* input, uchar_t* output, int length, const void* key);
+int tea_set_key(void* key_struct, const uchar_t* key_str, size_t key_len);
+int tea_free_key(void* key_struct);
+
+
+int xtea_encrypt(const uchar_t* input, uchar_t* output, int length, const void* key);
+int xtea_decrypt(const uchar_t* input, uchar_t* output, int length, const void* key);
+int xtea_set_key(void* key_struct, const uchar_t* key_str, size_t key_len);
+int xtea_free_key(void* key_struct);
 
 
 void* aes_new_key(const uchar_t* key, size_t key_len) ; 
@@ -30,6 +66,9 @@ int encrypt_image_file(char* name, uchar_t* input_path, uchar_t* output_path,
 
 int decrypt_image_file(char* name, uchar_t* input_path, uchar_t* output_path,
                        uchar_t* _key, size_t _key_len);
+
+
+int get_block_size(const char* cipher_name);  // returns 0 if unknown
 
 
 #endif

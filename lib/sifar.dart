@@ -5,6 +5,18 @@ import 'my_native_wrapper_bindings_generated.dart' as sifar;
 import 'dart:ffi' as ffi;
 import 'my_native_wrapper_bindings_generated.dart' as bindings;
 
+
+/// Returns the block size in bytes for the given cipher name.
+/// Returns 0 if the cipher is unknown.
+int blockSizeOf(String cipher) {
+  final ptr = cipher.toNativeUtf8();
+  try {
+    return sifar.get_block_size(ptr.cast<ffi.Char>());
+  } finally {
+    malloc.free(ptr);
+  }
+}
+
 class SifarAes {
   final Pointer<Void> _handle;
 

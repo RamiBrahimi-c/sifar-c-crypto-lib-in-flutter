@@ -47,6 +47,220 @@ external int aes_set_key(
 @ffi.Native<ffi.Int Function(ffi.Pointer<ffi.Void>)>()
 external int aes_free_key(ffi.Pointer<ffi.Void> key_struct);
 
+/// Public AES API — the only things Dart will call
+@ffi.Native<
+  ffi.Int Function(
+    ffi.Pointer<uchar_t>,
+    ffi.Pointer<uchar_t>,
+    ffi.Int,
+    ffi.Pointer<ffi.Void>,
+  )
+>()
+external int des_encrypt(
+  ffi.Pointer<uchar_t> input,
+  ffi.Pointer<uchar_t> output,
+  int length,
+  ffi.Pointer<ffi.Void> key,
+);
+
+@ffi.Native<
+  ffi.Int Function(
+    ffi.Pointer<uchar_t>,
+    ffi.Pointer<uchar_t>,
+    ffi.Int,
+    ffi.Pointer<ffi.Void>,
+  )
+>()
+external int des_decrypt(
+  ffi.Pointer<uchar_t> input,
+  ffi.Pointer<uchar_t> output,
+  int length,
+  ffi.Pointer<ffi.Void> key,
+);
+
+@ffi.Native<
+  ffi.Int Function(ffi.Pointer<ffi.Void>, ffi.Pointer<uchar_t>, ffi.Size)
+>()
+external int des_set_key(
+  ffi.Pointer<ffi.Void> key_struct,
+  ffi.Pointer<uchar_t> key_str,
+  int key_len,
+);
+
+@ffi.Native<ffi.Int Function(ffi.Pointer<ffi.Void>)>()
+external int des_free_key(ffi.Pointer<ffi.Void> key_struct);
+
+/// Public AES API — the only things Dart will call
+@ffi.Native<
+  ffi.Int Function(
+    ffi.Pointer<uchar_t>,
+    ffi.Pointer<uchar_t>,
+    ffi.Int,
+    ffi.Pointer<ffi.Void>,
+  )
+>()
+external int rc4_encrypt(
+  ffi.Pointer<uchar_t> input,
+  ffi.Pointer<uchar_t> output,
+  int length,
+  ffi.Pointer<ffi.Void> key,
+);
+
+@ffi.Native<
+  ffi.Int Function(
+    ffi.Pointer<uchar_t>,
+    ffi.Pointer<uchar_t>,
+    ffi.Int,
+    ffi.Pointer<ffi.Void>,
+  )
+>()
+external int rc4_decrypt(
+  ffi.Pointer<uchar_t> input,
+  ffi.Pointer<uchar_t> output,
+  int length,
+  ffi.Pointer<ffi.Void> key,
+);
+
+@ffi.Native<
+  ffi.Int Function(ffi.Pointer<ffi.Void>, ffi.Pointer<uchar_t>, ffi.Size)
+>()
+external int rc4_set_key(
+  ffi.Pointer<ffi.Void> key_struct,
+  ffi.Pointer<uchar_t> key_str,
+  int key_len,
+);
+
+@ffi.Native<ffi.Int Function(ffi.Pointer<ffi.Void>)>()
+external int rc4_free_key(ffi.Pointer<ffi.Void> key_struct);
+
+/// Public AES API — the only things Dart will call
+@ffi.Native<
+  ffi.Int Function(
+    ffi.Pointer<uchar_t>,
+    ffi.Pointer<uchar_t>,
+    ffi.Int,
+    ffi.Pointer<ffi.Void>,
+  )
+>()
+external int redpike_encrypt(
+  ffi.Pointer<uchar_t> input,
+  ffi.Pointer<uchar_t> output,
+  int length,
+  ffi.Pointer<ffi.Void> key,
+);
+
+@ffi.Native<
+  ffi.Int Function(
+    ffi.Pointer<uchar_t>,
+    ffi.Pointer<uchar_t>,
+    ffi.Int,
+    ffi.Pointer<ffi.Void>,
+  )
+>()
+external int redpike_decrypt(
+  ffi.Pointer<uchar_t> input,
+  ffi.Pointer<uchar_t> output,
+  int length,
+  ffi.Pointer<ffi.Void> key,
+);
+
+@ffi.Native<
+  ffi.Int Function(ffi.Pointer<ffi.Void>, ffi.Pointer<uchar_t>, ffi.Size)
+>()
+external int redpike_set_key(
+  ffi.Pointer<ffi.Void> key_struct,
+  ffi.Pointer<uchar_t> key_str,
+  int key_len,
+);
+
+@ffi.Native<ffi.Int Function(ffi.Pointer<ffi.Void>)>()
+external int redpike_free_key(ffi.Pointer<ffi.Void> key_struct);
+
+/// Public AES API — the only things Dart will call
+@ffi.Native<
+  ffi.Int Function(
+    ffi.Pointer<uchar_t>,
+    ffi.Pointer<uchar_t>,
+    ffi.Int,
+    ffi.Pointer<ffi.Void>,
+  )
+>()
+external int tea_encrypt(
+  ffi.Pointer<uchar_t> input,
+  ffi.Pointer<uchar_t> output,
+  int length,
+  ffi.Pointer<ffi.Void> key,
+);
+
+@ffi.Native<
+  ffi.Int Function(
+    ffi.Pointer<uchar_t>,
+    ffi.Pointer<uchar_t>,
+    ffi.Int,
+    ffi.Pointer<ffi.Void>,
+  )
+>()
+external int tea_decrypt(
+  ffi.Pointer<uchar_t> input,
+  ffi.Pointer<uchar_t> output,
+  int length,
+  ffi.Pointer<ffi.Void> key,
+);
+
+@ffi.Native<
+  ffi.Int Function(ffi.Pointer<ffi.Void>, ffi.Pointer<uchar_t>, ffi.Size)
+>()
+external int tea_set_key(
+  ffi.Pointer<ffi.Void> key_struct,
+  ffi.Pointer<uchar_t> key_str,
+  int key_len,
+);
+
+@ffi.Native<ffi.Int Function(ffi.Pointer<ffi.Void>)>()
+external int tea_free_key(ffi.Pointer<ffi.Void> key_struct);
+
+@ffi.Native<
+  ffi.Int Function(
+    ffi.Pointer<uchar_t>,
+    ffi.Pointer<uchar_t>,
+    ffi.Int,
+    ffi.Pointer<ffi.Void>,
+  )
+>()
+external int xtea_encrypt(
+  ffi.Pointer<uchar_t> input,
+  ffi.Pointer<uchar_t> output,
+  int length,
+  ffi.Pointer<ffi.Void> key,
+);
+
+@ffi.Native<
+  ffi.Int Function(
+    ffi.Pointer<uchar_t>,
+    ffi.Pointer<uchar_t>,
+    ffi.Int,
+    ffi.Pointer<ffi.Void>,
+  )
+>()
+external int xtea_decrypt(
+  ffi.Pointer<uchar_t> input,
+  ffi.Pointer<uchar_t> output,
+  int length,
+  ffi.Pointer<ffi.Void> key,
+);
+
+@ffi.Native<
+  ffi.Int Function(ffi.Pointer<ffi.Void>, ffi.Pointer<uchar_t>, ffi.Size)
+>()
+external int xtea_set_key(
+  ffi.Pointer<ffi.Void> key_struct,
+  ffi.Pointer<uchar_t> key_str,
+  int key_len,
+);
+
+@ffi.Native<ffi.Int Function(ffi.Pointer<ffi.Void>)>()
+external int xtea_free_key(ffi.Pointer<ffi.Void> key_struct);
+
 @ffi.Native<ffi.Pointer<ffi.Void> Function(ffi.Pointer<uchar_t>, ffi.Size)>()
 external ffi.Pointer<ffi.Void> aes_new_key(
   ffi.Pointer<uchar_t> key,
@@ -93,7 +307,20 @@ external int decrypt_image_file(
   int _key_len,
 );
 
+@ffi.Native<ffi.Int Function(ffi.Pointer<ffi.Char>)>()
+external int get_block_size(ffi.Pointer<ffi.Char> cipher_name);
+
 final class AesKey extends ffi.Opaque {}
+
+final class DesKey extends ffi.Opaque {}
+
+final class Rc4Key extends ffi.Opaque {}
+
+final class RedpikeKey extends ffi.Opaque {}
+
+final class TeaKey extends ffi.Opaque {}
+
+final class XTeaKey extends ffi.Opaque {}
 
 typedef uchar_t = ffi.UnsignedChar;
 typedef Dartuchar_t = int;

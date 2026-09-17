@@ -373,3 +373,19 @@ int decrypt_image_file(char *name  , uchar_t *input_path,uchar_t* output_path, u
 
 
 
+int get_block_size(const char* cipher_name) {
+    if (!cipher_name) return 0;
+    if (strcmp(cipher_name, "aes") == 0)      return 16;
+    if (strcmp(cipher_name, "des") == 0)      return 8;
+    if (strcmp(cipher_name, "blowfish") == 0) return 8;
+    if (strcmp(cipher_name, "tea") == 0)      return 8;
+    if (strcmp(cipher_name, "xtea") == 0)     return 8;
+    if (strcmp(cipher_name, "redpike") == 0)     return 8;
+    if (strcmp(cipher_name, "rc4") == 0)      return 1;
+    // classical ciphers operate byte-wise → 1
+    if (strcmp(cipher_name, "caesar") == 0)   return 1;
+    if (strcmp(cipher_name, "vigenere") == 0) return 1;
+    if (strcmp(cipher_name, "affine") == 0)   return 1;
+    // unknown
+    return 0;
+}
