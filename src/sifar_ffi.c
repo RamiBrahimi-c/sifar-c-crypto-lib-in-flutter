@@ -1,5 +1,12 @@
 #include "sifar_ffi.h"
 #include "ciphers/symmetric/aes.h"
+#include "ciphers/symmetric/des.h"
+#include "ciphers/symmetric/3des.h"
+#include "ciphers/symmetric/blowfish.h"
+#include "ciphers/symmetric/rc4.h"
+#include "ciphers/symmetric/redpike.h"
+#include "ciphers/symmetric/tea.h"
+#include "ciphers/symmetric/xtea.h"
 #include <stdlib.h>
 #include <string.h>
 
@@ -9,6 +16,65 @@ void* aes_new_key(const uint8_t* key, size_t key_len) {
     return k;
 }
 void aes_destroy_key(void* k) { free(k); }
+
+void* des_new_key(const uint8_t* key, size_t key_len) {
+    DesKey* k = malloc(sizeof(DesKey));
+    if (des_set_key(k, key, key_len) != 0) { free(k); return NULL; }
+    return k;
+}
+void des_destroy_key(void* k) { free(k); }
+
+void* tdes_new_key(const uint8_t* key, size_t key_len) {
+    TDesKey* k = malloc(sizeof(TDesKey));
+    if (tdes_set_key(k, key, key_len) != 0) { free(k); return NULL; }
+    return k;
+}
+void tdes_destroy_key(void* k) { free(k); }
+
+
+void* rc4_new_key(const uint8_t* key, size_t key_len) {
+    Rc4Key* k = malloc(sizeof(Rc4Key));
+    if (rc4_set_key(k, key, key_len) != 0) { free(k); return NULL; }
+    return k;
+}
+void rc4_destroy_key(void* k) { free(k); }
+
+
+
+void* blowfish_new_key(const uint8_t* key, size_t key_len) {
+    BlowfishKey* k = malloc(sizeof(BlowfishKey));
+    if (blowfish_set_key(k, key, key_len) != 0) { free(k); return NULL; }
+    return k;
+}
+void blowfish_destroy_key(void* k) { free(k); }
+
+
+
+void* redpike_new_key(const uint8_t* key, size_t key_len) {
+    RedpikeKey* k = malloc(sizeof(RedpikeKey));
+    if (redpike_set_key(k, key, key_len) != 0) { free(k); return NULL; }
+    return k;
+}
+void redpike_destroy_key(void* k) { free(k); }
+
+
+
+void* tea_new_key(const uint8_t* key, size_t key_len) {
+    TeaKey* k = malloc(sizeof(TeaKey));
+    if (tea_set_key(k, key, key_len) != 0) { free(k); return NULL; }
+    return k;
+}
+void tea_destroy_key(void* k) { free(k); }
+
+
+void* xtea_new_key(const uint8_t* key, size_t key_len) {
+    XTeaKey* k = malloc(sizeof(XTeaKey));
+    if (xtea_set_key(k, key, key_len) != 0) { free(k); return NULL; }
+    return k;
+}
+void xtea_destroy_key(void* k) { free(k); }
+
+
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "third-party/stb-nothing/stb_image.h"
@@ -377,6 +443,7 @@ int get_block_size(const char* cipher_name) {
     if (!cipher_name) return 0;
     if (strcmp(cipher_name, "aes") == 0)      return 16;
     if (strcmp(cipher_name, "des") == 0)      return 8;
+    if (strcmp(cipher_name, "tdes") == 0)      return 8;
     if (strcmp(cipher_name, "blowfish") == 0) return 8;
     if (strcmp(cipher_name, "tea") == 0)      return 8;
     if (strcmp(cipher_name, "xtea") == 0)     return 8;
@@ -389,3 +456,5 @@ int get_block_size(const char* cipher_name) {
     // unknown
     return 0;
 }
+
+

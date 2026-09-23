@@ -2,20 +2,25 @@
 #define RC4_C
 
 
-#include "../../../include/ciphers/symmetric/rc4.h"
-#include "../../../include/common/utils.h"
-#include "../../../include/common/constants.h"
+#include "rc4.h"
+#include "../../common/utils.h"
+#include "../../common/constants.h"
 #include <assert.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-// #include "../../../include/block_cipher_modes_operation.h"
 
 
 
-void rc4_encrypt(const uchar_t* input, uchar_t* output , int length, const void* key) {
-    assert(key != NULL && "key is null");
+
+int rc4_encrypt(const uchar_t* input, uchar_t* output , int length, const void* key) {
     Rc4Key *rc4_key = (Rc4Key *) (key) ;
+
+    if (rc4_key == NULL) {
+        fprintf(stderr , "ERROR: rc4_key is NULL\n") ; 
+        return 1 ; 
+    }
+
 
     // printf("======= printing info Rc4 Key =======\n");
     // printf("length of key : %d \n" , rc4_key->length);
@@ -28,9 +33,10 @@ void rc4_encrypt(const uchar_t* input, uchar_t* output , int length, const void*
     
     Rc4Key rc4_key_clone ;
     memcpy(&rc4_key_clone , rc4_key , sizeof(Rc4Key)) ; 
-    printf("i = %d \n j = %d \n length = %d " , rc4_key_clone.i
-                , rc4_key_clone.j
-                , rc4_key_clone.length);
+
+    // printf("i = %d \n j = %d \n length = %d " , rc4_key_clone.i
+                // , rc4_key_clone.j
+                // , rc4_key_clone.length);
     while (c <length)
     {
         rc4_key_clone.i = (rc4_key_clone.i + 1 ) % 256 ; 
@@ -42,14 +48,20 @@ void rc4_encrypt(const uchar_t* input, uchar_t* output , int length, const void*
         output[c] = encrypting_byte ^ input[c] ; 
         c++ ; 
     }
-    printf("c = %d \n" , c) ; 
-    
+    // printf("c = %d \n" , c) ; 
+    return 0 ; 
 }
 
 
-void rc4_decrypt(const uchar_t* input, uchar_t* output , int length, const void* key) {
-    assert(key != NULL && "key is null");
+int rc4_decrypt(const uchar_t* input, uchar_t* output , int length, const void* key) {
+    // assert(key != NULL && "key is null");
     Rc4Key *rc4_key = (Rc4Key *) (key) ;
+
+    if (rc4_key == NULL) {
+        fprintf(stderr , "ERROR: rc4_key is NULL\n") ; 
+        return 1 ; 
+    }
+    
 
     // printf("======= printing info Rc4 Key =======\n");
     // printf("length : %d \n" , rc4_key->length);
@@ -68,12 +80,15 @@ void rc4_decrypt(const uchar_t* input, uchar_t* output , int length, const void*
         output[c] = encrypting_byte ^ input[c] ; 
         c++ ; 
     }
-        
+    return 0 ; 
 }
 
-void rc4_set_key(void* key_struct, const uchar_t* key_str , size_t key_len) {
+int rc4_set_key(void* key_struct, const uchar_t* key_str , size_t key_len) {
     Rc4Key *rc4_key = (Rc4Key *) key_struct ;
-    
+    if (rc4_key==NULL) {
+        fprintf(stderr , "ERROR: rc4_key is NULL\n") ; 
+        return 1 ; 
+    }
 
     rc4_key->length = RC4_KEY_MAX_SIZE ; 
 
@@ -94,9 +109,14 @@ void rc4_set_key(void* key_struct, const uchar_t* key_str , size_t key_len) {
     rc4_key->j = 0 ; 
     
     rc4_key->type = STREAM_CIPHER ;
+
+    return 0 ; 
 }
 
-void rc4_free_key(void* key_struct);
+int rc4_free_key(void* key_struct) {
+    free(key_struct) ; 
+    return 0  ;
+}
 
 Cipher* get_rc4_cipher(void);
 

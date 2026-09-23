@@ -4,7 +4,6 @@
 #define MATRIX_MAX_DEGREE 20
 #define ARRAY_MAX_SIZE 256
 
-#define RC4_KEY_MAX_SIZE 256
 
 
 // default : the total ASCII characters 128

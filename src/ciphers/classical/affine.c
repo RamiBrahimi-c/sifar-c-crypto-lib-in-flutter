@@ -1,9 +1,9 @@
 #ifndef AFFINE_C
 #define AFFINE_C
 
-#include "../../../include/ciphers/classical/affine.h"
-#include "../../../include/common/utils.h"
-#include "../../../include/common/constants.h"
+#include "affine.h"
+#include "../../common/utils.h"
+#include "../../common/constants.h"
 #include <assert.h>
 #include <stdio.h>
 #include <string.h>

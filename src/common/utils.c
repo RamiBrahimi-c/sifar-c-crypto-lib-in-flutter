@@ -1,8 +1,8 @@
 #ifndef UTILS_C
 #define UTILS_C
 
-#include "../../include/common/utils.h"
-#include "../../include/common/constants.h"
+#include "utils.h"
+#include "constants.h"
 
 // default : the total ASCII characters128
 // int ALPHABET_LENGTH  = 128 ; 
@@ -461,6 +461,18 @@ void swapUnsignedChar(uchar_t *a ,uchar_t *b ) {
     *b = temp ;
 }
 
+// maybe we should migrate this to other place ???
+uchar_t binaryXorUchar(void *a , void *b) {
+    return *((uchar_t*) a) ^ *((uchar_t *)b) ;  
+}
+
+void mapOperation(uchar_t *arr1 ,uchar_t *arr2  , uchar_t *result, int length  ,uchar_t opp(void * , void *) ) {
+    for (size_t i = 0; i < length; i++)
+    {
+        result[i] = opp((void *) &arr1[i] ,(void *) &arr2[i]) ; 
+    }
+    
+}
 
 
 #endif

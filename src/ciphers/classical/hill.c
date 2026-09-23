@@ -2,8 +2,8 @@
 #define HILL_C
 
 
-#include "../../../include/ciphers/classical/hill.h"
-#include "../../../include/common/utils.h"
+#include "hill.h"
+#include "../../common/utils.h"
 #include <assert.h>
 #include <stdio.h>
 #include <string.h>

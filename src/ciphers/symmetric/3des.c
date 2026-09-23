@@ -3,10 +3,11 @@
     screw ts
 */
 
-#ifndef DES_C
-#define DES_C
+#ifndef TDES_C
+#define TDES_C
 
 #include "des.h"
+#include "3des.h"
 #include "../../common/utils.h"
 #include "../../common/constants.h"
 #include <assert.h>
@@ -17,8 +18,7 @@
 #include "../../block_cipher_modes_operation.h"
 
 
-
-#define DES_BLOCK_SIZE 8
+#define TDES_BLOCK_SIZE 8
 
 // static void swapUnsignedChar(uchar_t *a ,uchar_t *b ) {
 //     uchar_t temp = *a ; 
@@ -410,7 +410,19 @@ static void setFirstPermutation(uchar_t *input , int input_size , uchar_t *right
 
 }
 
+/* // maybe we should migrate this to other place ???
+static uchar_t binaryXorUchar(void *a , void *b) {
+    return *((uchar_t*) a) ^ *((uchar_t *)b) ;  
+}
 
+static void mapOperation(uchar_t *arr1 ,uchar_t *arr2  , uchar_t *result, int length  ,uchar_t opp(void * , void *) ) {
+    for (size_t i = 0; i < length; i++)
+    {
+        result[i] = opp((void *) &arr1[i] ,(void *) &arr2[i]) ; 
+    }
+    
+}
+ */
 
 /*
     input must be 64 bits (8 bytes) 
@@ -830,14 +842,52 @@ static int des_decrypt_block(const uchar_t *input, uchar_t *output,const void *k
 }
 
 
+int tdes_encrypt_wrapper(const uchar_t *input  , uchar_t *output , const void *key ) {
+    TDesKey *tdes_key = (TDesKey *) key ;
+    if (tdes_key == NULL) {
+        fprintf(stderr , "ERROR: tdes_key is NULL \n") ; 
+        return 1 ; 
+    }
+    uchar_t buffer[TDES_BLOCK_SIZE] , buffer2[TDES_BLOCK_SIZE]  ; 
+
+    DesKey k1 , k2 , k3 ;
+    des_set_key(&k1, tdes_key->key   , 8);
+    des_set_key(&k2, tdes_key->key + 8   , 8);
+    des_set_key(&k3, tdes_key->key + 16  , 8);
+
+    des_encrypt_wrapper(input , buffer , &k1) ; 
+    des_decrypt_block  (buffer , buffer2 , &k2) ; 
+    des_encrypt_wrapper(buffer2 , output , &k3) ; 
+
+}
+
+int tdes_decrypt_block(const uchar_t *input, uchar_t *output,const void *key) {
+    TDesKey *tdes_key = (TDesKey *) key ;
+    if (tdes_key == NULL) {
+        fprintf(stderr , "ERROR: tdes_key is NULL \n") ; 
+        return 1 ; 
+    }
+    uchar_t buffer[TDES_BLOCK_SIZE] , buffer2[TDES_BLOCK_SIZE]  ; 
+
+    DesKey k1 , k2 , k3 ;
+    des_set_key(&k1, tdes_key->key   , 8);
+    des_set_key(&k2, tdes_key->key + 8   , 8);
+    des_set_key(&k3, tdes_key->key + 16  , 8);
+
+    des_decrypt_block  (input , buffer , &k3) ; 
+    des_encrypt_wrapper(buffer , buffer2 , &k2) ; 
+    des_decrypt_block(buffer2 , output , &k1) ; 
+
+}
 
 
-int des_encrypt(const uchar_t* input, uchar_t* output , int length , const void* key) {
+
+int tdes_encrypt(const uchar_t* input, uchar_t* output , int length , const void* key) {
 
 
-    int result =  ecb_encrypt( input , output ,  length , DES_BLOCK_SIZE  , key , des_encrypt_wrapper  ) ; 
+    int result =  ecb_encrypt( input , output ,  length , TDES_BLOCK_SIZE  , key , tdes_encrypt_wrapper  ) ; 
     if (result != 0) {
-        fprintf(stderr , "ERROR: des_encrypt : something wrong happened , couldnt encrypt \n" ) ;
+        fprintf(stderr , "ERROR: tdes_encrypt : something wrong happened , couldnt encrypt \n" ) ;
         return 1 ;  
     }
 
@@ -845,11 +895,11 @@ int des_encrypt(const uchar_t* input, uchar_t* output , int length , const void*
 }
 
 
-int des_decrypt(const uchar_t* input, uchar_t* output , int length , const void* key ){
+int tdes_decrypt(const uchar_t* input, uchar_t* output , int length , const void* key ){
 
-    int result =  ecb_decrypt( input , output ,  length , DES_BLOCK_SIZE  , key , des_decrypt_block  ) ; 
+    int result =  ecb_decrypt( input , output ,  length , TDES_BLOCK_SIZE  , key , tdes_decrypt_block  ) ; 
     if (result != 0) {
-        fprintf(stderr , "ERROR: des_decrypt : something wrong happened , couldnt encrypt \n" ) ;
+        fprintf(stderr , "ERROR: tdes_decrypt : something wrong happened , couldnt encrypt \n" ) ;
         return 1 ;  
     }
 
@@ -857,93 +907,93 @@ int des_decrypt(const uchar_t* input, uchar_t* output , int length , const void*
 }
 
 
-int des_encrypt_cbc(const uchar_t* input, uchar_t* output , uchar_t *iv , int length, const void* key)
+int tdes_encrypt_cbc(const uchar_t* input, uchar_t* output , uchar_t *iv , int length, const void* key)
 {
 
-    int result =  cbc_encrypt( input , output , iv , length , DES_BLOCK_SIZE  , key ,des_encrypt_wrapper ) ; ; 
+    int result =  cbc_encrypt( input , output , iv , length , TDES_BLOCK_SIZE  , key ,tdes_encrypt_wrapper ) ; ; 
     if (result != 0) {
-        fprintf(stderr , "ERROR: des_encrypt_cbc : something wrong happened , couldnt encrypt \n" ) ;
+        fprintf(stderr , "ERROR: tdes_encrypt_cbc : something wrong happened , couldnt encrypt \n" ) ;
         return 1 ;  
     }
 
     return 0 ; 
 }
 
-int des_decrypt_cbc(const uchar_t* input, uchar_t* output , uchar_t *iv, int length, const void* key)
+int tdes_decrypt_cbc(const uchar_t* input, uchar_t* output , uchar_t *iv, int length, const void* key)
 {
-    int result =  cbc_decrypt( input , output , iv , length , DES_BLOCK_SIZE  , key ,des_decrypt_block ) ; ; 
+    int result =  cbc_decrypt( input , output , iv , length , TDES_BLOCK_SIZE  , key ,tdes_decrypt_block ) ; ; 
     if (result != 0) {
-        fprintf(stderr , "ERROR: des_decrypt_cbc : something wrong happened , couldnt encrypt \n" ) ;
+        fprintf(stderr , "ERROR: tdes_decrypt_cbc : something wrong happened , couldnt encrypt \n" ) ;
         return 1 ;  
     }
 
     return 0 ; 
 }
 
-int des_encrypt_cfb(const uchar_t* input, uchar_t* output , uchar_t *iv , int length, const void* key)
-{
-
-    int result =  cfb_encrypt( input , output , iv , length , DES_BLOCK_SIZE  , key ,des_encrypt_wrapper ) ; ; 
-    if (result != 0) {
-        fprintf(stderr , "ERROR: des_encrypt_cfb : something wrong happened , couldnt encrypt \n" ) ;
-        return 1 ;  
-    }
-
-    return 0 ; 
-}
-
-int des_decrypt_cfb(const uchar_t* input, uchar_t* output , uchar_t *iv, int length, const void* key)
-{
-    int result =  cfb_decrypt( input , output , iv , length , DES_BLOCK_SIZE  , key ,des_encrypt_wrapper ) ; ; 
-    if (result != 0) {
-        fprintf(stderr , "ERROR: des_decrypt_cfb : something wrong happened , couldnt encrypt \n" ) ;
-        return 1 ;  
-    }
-
-    return 0 ; 
-}
-
-
-int des_encrypt_ofb(const uchar_t* input, uchar_t* output , uchar_t *iv , int length, const void* key)
+int tdes_encrypt_cfb(const uchar_t* input, uchar_t* output , uchar_t *iv , int length, const void* key)
 {
 
-    int result =  ofb_encrypt( input , output , iv , length , DES_BLOCK_SIZE  , key ,des_encrypt_wrapper ) ; ; 
+    int result =  cfb_encrypt( input , output , iv , length , TDES_BLOCK_SIZE  , key ,tdes_encrypt_wrapper ) ; ; 
     if (result != 0) {
-        fprintf(stderr , "ERROR: des_encrypt_ofb : something wrong happened , couldnt encrypt \n" ) ;
+        fprintf(stderr , "ERROR: tdes_encrypt_cfb : something wrong happened , couldnt encrypt \n" ) ;
         return 1 ;  
     }
 
     return 0 ; 
 }
 
-int des_decrypt_ofb(const uchar_t* input, uchar_t* output , uchar_t *iv, int length, const void* key)
+int tdes_decrypt_cfb(const uchar_t* input, uchar_t* output , uchar_t *iv, int length, const void* key)
 {
-    int result =  ofb_decrypt( input , output , iv , length , DES_BLOCK_SIZE  , key ,des_encrypt_wrapper ) ; ; 
+    int result =  cfb_decrypt( input , output , iv , length , TDES_BLOCK_SIZE  , key ,tdes_encrypt_wrapper ) ; ; 
     if (result != 0) {
-        fprintf(stderr , "ERROR: des_decrypt_ofb : something wrong happened , couldnt encrypt \n" ) ;
+        fprintf(stderr , "ERROR: tdes_decrypt_cfb : something wrong happened , couldnt encrypt \n" ) ;
         return 1 ;  
     }
 
     return 0 ; 
 }
 
-int des_encrypt_ctr(const uchar_t* input, uchar_t* output , uchar_t *iv , int length, const void* key)
+
+int tdes_encrypt_ofb(const uchar_t* input, uchar_t* output , uchar_t *iv , int length, const void* key)
 {
 
-    int result =  ctr_encrypt( input , output , iv , length , DES_BLOCK_SIZE  , key ,des_encrypt_wrapper ) ; ; 
+    int result =  ofb_encrypt( input , output , iv , length , TDES_BLOCK_SIZE  , key ,tdes_encrypt_wrapper ) ; ; 
     if (result != 0) {
-        fprintf(stderr , "ERROR: des_encrypt_ctr : something wrong happened , couldnt encrypt \n" ) ;
+        fprintf(stderr , "ERROR: tdes_encrypt_ofb : something wrong happened , couldnt encrypt \n" ) ;
         return 1 ;  
     }
 
     return 0 ; 
 }
 
-int des_decrypt_ctr(const uchar_t* input, uchar_t* output , uchar_t *iv, int length, const void* key)
+int tdes_decrypt_ofb(const uchar_t* input, uchar_t* output , uchar_t *iv, int length, const void* key)
 {
-    int result =  ctr_decrypt( input , output , iv , length , DES_BLOCK_SIZE  , key ,des_encrypt_wrapper ) ; ; 
+    int result =  ofb_decrypt( input , output , iv , length , TDES_BLOCK_SIZE  , key ,tdes_encrypt_wrapper ) ; ; 
     if (result != 0) {
-        fprintf(stderr , "ERROR: des_decrypt_ctr : something wrong happened , couldnt encrypt \n" ) ;
+        fprintf(stderr , "ERROR: tdes_decrypt_ofb : something wrong happened , couldnt encrypt \n" ) ;
+        return 1 ;  
+    }
+
+    return 0 ; 
+}
+
+int tdes_encrypt_ctr(const uchar_t* input, uchar_t* output , uchar_t *iv , int length, const void* key)
+{
+
+    int result =  ctr_encrypt( input , output , iv , length , TDES_BLOCK_SIZE  , key ,tdes_encrypt_wrapper ) ; ; 
+    if (result != 0) {
+        fprintf(stderr , "ERROR: tdes_encrypt_ctr : something wrong happened , couldnt encrypt \n" ) ;
+        return 1 ;  
+    }
+
+    return 0 ; 
+}
+
+int tdes_decrypt_ctr(const uchar_t* input, uchar_t* output , uchar_t *iv, int length, const void* key)
+{
+    int result =  ctr_decrypt( input , output , iv , length , TDES_BLOCK_SIZE  , key ,tdes_encrypt_wrapper ) ; ; 
+    if (result != 0) {
+        fprintf(stderr , "ERROR: tdes_decrypt_ctr : something wrong happened , couldnt encrypt \n" ) ;
         return 1 ;  
     }
 
@@ -953,11 +1003,10 @@ int des_decrypt_ctr(const uchar_t* input, uchar_t* output , uchar_t *iv, int len
 
 
 
-// TODO : this part needs to be checked again
-int des_set_key(void* key_struct, const uchar_t* key_str , size_t key_len) {
-    DesKey *des_key = (DesKey *) key_struct ;
-    if (des_key==NULL) {
-        fprintf(stderr , "ERROR: des_key is NULL\n") ; 
+int tdes_set_key(void* key_struct, const uchar_t* key_str , size_t key_len) {
+    TDesKey *tdes_key = (TDesKey *) key_struct ;
+    if (tdes_key==NULL) {
+        fprintf(stderr , "ERROR: tdes_key is NULL\n") ; 
         return 1 ; 
     }
 
@@ -966,21 +1015,21 @@ int des_set_key(void* key_struct, const uchar_t* key_str , size_t key_len) {
         return 2 ; 
     }
 
-    memcpy(des_key->key , key_str ,8 ) ; 
+    memcpy(tdes_key->key , key_str ,24 ) ; 
     // printf("key set to : \n") ; 
-    des_key->type = BLOCK_CIPHER ;
-    // PRINT_ARRAY(des_key->key , 8) ; 
+    tdes_key->type = BLOCK_CIPHER ;
+    // PRINT_ARRAY(tdes_key->key , 8) ; 
     return 0 ; 
 }
 
 
-int des_free_key(void* key_struct) {
+int tdes_free_key(void* key_struct) {
 
     free(key_struct) ; 
     return 0 ; 
 }
 
-Cipher* get_des_cipher(void);
+Cipher* get_tdes_cipher(void);
 
 
 

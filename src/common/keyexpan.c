@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include <string.h>
-#include "../../include/common/rijnbox.h"
-#include "../../include/common/keyexpan.h"
-#include "../../include/common/galois_field_op.h"
+#include "rijnbox.h"
+#include "keyexpan.h"
+#include "galois_field_op.h"
 
 
 

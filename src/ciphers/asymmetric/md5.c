@@ -1,4 +1,5 @@
 #include "hash.h"
+#include "hash_padding.h"
 #include <math.h>
 
 // TODO : a code REFACTOR for the similar functions that we need both in MD4 and MD5 
@@ -294,8 +295,21 @@ static double absd(double a) {
 // }
 
 
+uchar_t* md5_padding(uchar_t M[] , uint64_t b , uint64_t *output_length ) {
+    // just being lazy or smarty here :(
+    return md4_padding(M , b , output_length) ;
+}
 
-void md5_hash(uchar_t M[] , int N , uchar_t *output) {
+
+
+void md5_hash(uchar_t original_input[] , int length , uchar_t *output) {
+
+    uint64_t new_length = 0 ; 
+    uchar_t *M  = md5_padding(original_input , 8*length , &new_length  ) ; 
+    
+    int N = new_length/8; 
+
+
     uchar_t A[4] , B[4] , C[4] , D[4] ;
 
     // first word
@@ -483,12 +497,7 @@ void md5_hash(uchar_t M[] , int N , uchar_t *output) {
     memcpy(output + 8, C , sizeof(uchar_t)*4) ;
     memcpy(output + 12, D , sizeof(uchar_t)*4) ;
 
-
+    free(M) ; 
  
 }
 
-
-uchar_t* md5_padding(uchar_t M[] , uint64_t b , uint64_t *output_length ) {
-    // just being lazy or smarty here :(
-    return md4_padding(M , b , output_length) ;
-}

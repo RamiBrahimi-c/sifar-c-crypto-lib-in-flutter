@@ -20,47 +20,7 @@ typedef enum AES_TYPE {
     AES256 
 }AES_TYPE;
 
-void fill_state(uchar_t *input  , int index, uchar_t state[4][4]);
 
-void add_round_key(uchar_t *key , int k , uchar_t state[4][4]) ;
-/*
-    the function that is used in AES rounds !!!!
-*/
-void sub_bytes(uchar_t state[4][4] ) ;
-void rev_sub_bytes(uchar_t state[4][4] ) ;
-// C Code to left rotate an array using Reversal Algorithm
-
-#include <stdio.h>
-
-// Function to reverse a portion of the array
-void reverse(uchar_t* arr, int start, int end);
-
-// Function to rotate an array by d elements to the left
-void rotateArr(uchar_t* arr, int n, int d) ;
-void rotateArrR(uchar_t* arr, int n, int d) ;
-
-
-void shift_rows(uchar_t state[4][4]) ;
-void inv_shift_rows(uchar_t state[4][4]) ;
-
-
-void mix_culumns(uchar_t state[4][4]) ;
-void rev_mix_culumns(uchar_t state[4][4]) ;
-
-void fill_state_inv(uchar_t *key  , int k, uchar_t state[4][4]) ;
-
-
-static void aes_cipher_block(const uchar_t *input   , uchar_t *output ,const void *key ) ;
-static void aes_cipher_inverse_block(const uchar_t *input   , uchar_t *output ,const void *key ) ;
-void aes_cipher(uchar_t *input   , uchar_t *output, uchar_t *key  , int length, int Nr) ;
-void aes_cipher_decrypt(uchar_t *input   , uchar_t *output, uchar_t *key  , int length, int Nr) ;
-
-
-
-
-
-// Opaque type – actual definition in aes.c
-typedef struct AesKey AesKey;
 
 typedef struct AesKey {
     AES_TYPE mode ; // aes126 , aes192 or aes256
@@ -78,6 +38,20 @@ int aes_encrypt(const uchar_t* input, uchar_t* output, int length, const void* k
 int aes_decrypt(const uchar_t* input, uchar_t* output, int length, const void* key);
 int aes_set_key(void* key_struct, const uchar_t* key_str , size_t key_len);
 int aes_free_key(void* key_struct);
+
+int aes_encrypt_cbc(const uchar_t* input, uchar_t* output , uchar_t *iv , int length, const void* key) ;
+int aes_decrypt_cbc(const uchar_t* input, uchar_t* output , uchar_t *iv , int length, const void* key) ;
+
+int aes_encrypt_cfb(const uchar_t* input, uchar_t* output , uchar_t *iv , int length, const void* key) ;
+int aes_decrypt_cfb(const uchar_t* input, uchar_t* output , uchar_t *iv , int length, const void* key) ;
+
+int aes_encrypt_ofb(const uchar_t* input, uchar_t* output , uchar_t *iv , int length, const void* key) ;
+int aes_decrypt_ofb(const uchar_t* input, uchar_t* output , uchar_t *iv , int length, const void* key) ;
+
+int aes_encrypt_ctr(const uchar_t* input, uchar_t* output , uchar_t *iv , int length, const void* key) ;
+int aes_decrypt_ctr(const uchar_t* input, uchar_t* output , uchar_t *iv , int length, const void* key) ;
+
+size_t aes_get_output_len(size_t input_len) ;
 
 Cipher* get_aes_cipher(void);
 

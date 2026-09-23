@@ -27,6 +27,7 @@ void main(List<String> args) async {
         'src/ciphers/symmetric/aes.c',
         'src/ciphers/symmetric/blowfish.c',
         'src/ciphers/symmetric/des.c',
+        'src/ciphers/symmetric/3des.c',
         'src/ciphers/symmetric/rc4.c',
         'src/ciphers/symmetric/redpike.c',
         'src/ciphers/symmetric/reseau_fistel.c',

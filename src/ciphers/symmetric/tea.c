@@ -2,7 +2,10 @@
 #include <stdio.h>
 #include <assert.h>
 #include <string.h>
-#include "../../../include/block_cipher_modes_operation.h"
+#include "../../block_cipher_modes_operation.h"
+
+
+
 /*
     thanks to : https://link.springer.com/chapter/10.1007/3-540-60590-8_29
 */
@@ -15,7 +18,7 @@
     uchar_t *output : gotta be size of 8 bytes
 */
 
-static void tea_encrypt_block(const uchar_t *vv , uchar_t *output,const void *key) {
+static int tea_encrypt_block(const uchar_t *vv , uchar_t *output,const void *key) {
     assert(key != NULL && "key is null");
     TeaKey *tea_key = (TeaKey *) (key) ;
     uchar_t *kk = tea_key->key ;
@@ -75,7 +78,7 @@ static void tea_encrypt_block(const uchar_t *vv , uchar_t *output,const void *ke
     uchar_t *vv : gotta be size of 8 bytes
     uchar_t *kk : gotta be size of 16 bytes
 */
-static void tea_decrypt_block(const uchar_t *vv , uchar_t *output,const void *key) {
+static int tea_decrypt_block(const uchar_t *vv , uchar_t *output,const void *key) {
     assert(key != NULL && "key is null");
     TeaKey *tea_key = (TeaKey *) (key) ;
     uchar_t *kk = tea_key->key ;
@@ -132,38 +135,161 @@ static void tea_decrypt_block(const uchar_t *vv , uchar_t *output,const void *ke
 
 
 
-void tea_encrypt(const uchar_t* input, uchar_t* output , int length , const void* key) {
+int tea_encrypt(const uchar_t* input, uchar_t* output , int length , const void* key) {
     
 
-    uchar_t *iv = malloc(sizeof(uchar_t)*TEA_BLOCK_SIZE) ;
-    blockcipher_encrypt_modeop(input , output , iv , length , TEA_BLOCK_SIZE , key , tea_encrypt_block) ;
-    free(iv);    
+    int result =  ecb_encrypt( input , output ,  length , TEA_BLOCK_SIZE  , key , tea_encrypt_block  ) ; 
+    if (result != 0) {
+        fprintf(stderr , "ERROR: tea_encrypt : something wrong happened , couldnt encrypt \n" ) ;
+        return 1 ;  
+    }
+
+    return 0 ; 
     
     
 }
 
 
-void tea_decrypt(const uchar_t* input, uchar_t* output , int length , const void* key) {
+int tea_decrypt(const uchar_t* input, uchar_t* output , int length , const void* key) {
 
-    uchar_t *iv = malloc(sizeof(uchar_t)*TEA_BLOCK_SIZE) ;
-    blockcipher_decrypt_modeop(input , output , iv , length , TEA_BLOCK_SIZE , key , tea_decrypt_block) ;
-    free(iv);    
+    int result =  ecb_decrypt( input , output ,  length , TEA_BLOCK_SIZE  , key , tea_decrypt_block  ) ; 
+    if (result != 0) {
+        fprintf(stderr , "ERROR: tea_decrypt : something wrong happened , couldnt encrypt \n" ) ;
+        return 1 ;  
+    }
+
+    return 0 ; 
         
 }
 
 
-void tea_set_key(void* key_struct, const uchar_t* key_str , size_t key_len) {
+
+
+int tea_encrypt_cbc(const uchar_t* input, uchar_t* output , uchar_t *iv , int length, const void* key)
+{
+
+    int result =  cbc_encrypt( input , output , iv , length , TEA_BLOCK_SIZE  , key ,tea_encrypt_block ) ; ; 
+    if (result != 0) {
+        fprintf(stderr , "ERROR: tea_encrypt_cbc : something wrong happened , couldnt encrypt \n" ) ;
+        return 1 ;  
+    }
+
+    return 0 ; 
+}
+
+int tea_decrypt_cbc(const uchar_t* input, uchar_t* output , uchar_t *iv, int length, const void* key)
+{
+    int result =  cbc_decrypt( input , output , iv , length , TEA_BLOCK_SIZE  , key ,tea_decrypt_block ) ; ; 
+    if (result != 0) {
+        fprintf(stderr , "ERROR: tea_decrypt_cbc : something wrong happened , couldnt encrypt \n" ) ;
+        return 1 ;  
+    }
+
+    return 0 ; 
+}
+
+int tea_encrypt_cfb(const uchar_t* input, uchar_t* output , uchar_t *iv , int length, const void* key)
+{
+
+    int result =  cfb_encrypt( input , output , iv , length , TEA_BLOCK_SIZE  , key ,tea_encrypt_block ) ; ; 
+    if (result != 0) {
+        fprintf(stderr , "ERROR: tea_encrypt_cfb : something wrong happened , couldnt encrypt \n" ) ;
+        return 1 ;  
+    }
+
+    return 0 ; 
+}
+
+int tea_decrypt_cfb(const uchar_t* input, uchar_t* output , uchar_t *iv, int length, const void* key)
+{
+    int result =  cfb_decrypt( input , output , iv , length , TEA_BLOCK_SIZE  , key ,tea_encrypt_block ) ; ; 
+    if (result != 0) {
+        fprintf(stderr , "ERROR: tea_decrypt_cfb : something wrong happened , couldnt encrypt \n" ) ;
+        return 1 ;  
+    }
+
+    return 0 ; 
+}
+
+
+int tea_encrypt_ofb(const uchar_t* input, uchar_t* output , uchar_t *iv , int length, const void* key)
+{
+
+    int result =  ofb_encrypt( input , output , iv , length , TEA_BLOCK_SIZE  , key ,tea_encrypt_block ) ; ; 
+    if (result != 0) {
+        fprintf(stderr , "ERROR: tea_encrypt_ofb : something wrong happened , couldnt encrypt \n" ) ;
+        return 1 ;  
+    }
+
+    return 0 ; 
+}
+
+int tea_decrypt_ofb(const uchar_t* input, uchar_t* output , uchar_t *iv, int length, const void* key)
+{
+    int result =  ofb_decrypt( input , output , iv , length , TEA_BLOCK_SIZE  , key ,tea_encrypt_block ) ; ; 
+    if (result != 0) {
+        fprintf(stderr , "ERROR: tea_decrypt_ofb : something wrong happened , couldnt encrypt \n" ) ;
+        return 1 ;  
+    }
+
+    return 0 ; 
+}
+
+int tea_encrypt_ctr(const uchar_t* input, uchar_t* output , uchar_t *iv , int length, const void* key)
+{
+
+    int result =  ctr_encrypt( input , output , iv , length , TEA_BLOCK_SIZE  , key ,tea_encrypt_block ) ; ; 
+    if (result != 0) {
+        fprintf(stderr , "ERROR: tea_encrypt_ctr : something wrong happened , couldnt encrypt \n" ) ;
+        return 1 ;  
+    }
+
+    return 0 ; 
+}
+
+int tea_decrypt_ctr(const uchar_t* input, uchar_t* output , uchar_t *iv, int length, const void* key)
+{
+    int result =  ctr_decrypt( input , output , iv , length , TEA_BLOCK_SIZE  , key ,tea_encrypt_block ) ; ; 
+    if (result != 0) {
+        fprintf(stderr , "ERROR: tea_decrypt_ctr : something wrong happened , couldnt encrypt \n" ) ;
+        return 1 ;  
+    }
+
+    return 0 ; 
+}
+
+
+
+int tea_set_key(void* key_struct, const uchar_t* key_str , size_t key_len) {
     TeaKey *tea_key = (TeaKey *) key_struct ;
-    
+    if (tea_key == NULL) {
+        fprintf(stderr , "ERROR :key_struct is null \n") ;
+        return 1 ;  
+    }
+    if (key_str==NULL) {
+        fprintf(stderr , "ERROR :key_str is NULL \n") ;
+        return 1 ;  
+
+    }
+    if (key_len < 16) {
+        fprintf(stderr , "ERROR :key_len is too short , must be (>=16) bytes \n") ;
+        return 2 ;  
+    }
+
     // how can we make sure that key_str is actually TEA_KEY_MAX_SIZE bytes ...
     assert(key_len >= 16 && "key length here must be 16 bytes");    
     memcpy(tea_key->key , key_str , sizeof(uchar_t)*TEA_KEY_MAX_SIZE) ; 
     tea_key->length = TEA_KEY_MAX_SIZE   ; 
     tea_key->type = BLOCK_CIPHER ; 
+
+    return 0 ; 
 }
 
 
-void tea_free_key(void* key_struct);
+int tea_free_key(void* key_struct) {
+    free(key_struct) ; 
+    return 0 ; 
+}
 
 Cipher* get_tea_cipher(void);
 

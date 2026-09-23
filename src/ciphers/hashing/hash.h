@@ -17,11 +17,9 @@
 
 // cute md4 ...
 void md4_hash(uchar_t M[] , int N , uchar_t *output) ;
-uchar_t* md4_padding(uchar_t M[] , uint64_t b , uint64_t *output_length ) ;
 
 // md5 ... (pls be easy to implement)  . after : well the effort was done in MD4 , im glad .
 void md5_hash(uchar_t M[] , int N , uchar_t *output) ;
-uchar_t* md5_padding(uchar_t M[] , uint64_t b , uint64_t *output_length ) ;
 
 uchar_t* sha512_padding(const uchar_t M[] , uint64_t b , uint64_t *output_length ) ;
 

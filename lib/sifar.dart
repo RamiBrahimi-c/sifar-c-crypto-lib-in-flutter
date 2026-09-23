@@ -17,6 +17,100 @@ int blockSizeOf(String cipher) {
   }
 }
 
+
+class SifarCipher {
+  final String name;
+  final Pointer<Void> _handle;
+
+  SifarCipher._(this.name, this._handle);
+
+  /// Build a cipher handle from [key] bytes.
+  /// [name] must be one of: aes, des, rc4, redpike, tea, xtea.
+  factory SifarCipher(String name, Uint8List key) {
+    final keyPtr = calloc<Uint8>(key.length);
+    keyPtr.asTypedList(key.length).setAll(0, key);
+
+    final Pointer<Void> handle;
+    switch (name) {
+      case 'aes':      handle = sifar.aes_new_key(keyPtr.cast(), key.length); break;
+      case 'des':      handle = sifar.des_new_key(keyPtr.cast(), key.length); break;
+      case 'rc4':      handle = sifar.rc4_new_key(keyPtr.cast(), key.length); break;
+      case 'redpike':  handle = sifar.redpike_new_key(keyPtr.cast(), key.length); break;
+      case 'tea':      handle = sifar.tea_new_key(keyPtr.cast(), key.length); break;
+      case 'xtea':     handle = sifar.xtea_new_key(keyPtr.cast(), key.length); break;
+      default:
+        calloc.free(keyPtr);
+        throw ArgumentError('Unknown cipher: $name');
+    }
+
+    calloc.free(keyPtr);
+    if (handle == nullptr) throw StateError('$name: key setup failed');
+    return SifarCipher._(name, handle);
+  }
+
+  Uint8List encrypt(Uint8List input) => _run(input, encrypt: true);
+  Uint8List decrypt(Uint8List input) => _run(input, encrypt: false);
+
+  Uint8List _run(Uint8List input, {required bool encrypt}) {
+    final inPtr  = calloc<Uint8>(input.length);
+    final outPtr = calloc<Uint8>(input.length);
+    try {
+      inPtr.asTypedList(input.length).setAll(0, input);
+
+      final rc = _dispatch(inPtr, outPtr, input.length, encrypt);
+      if (rc != 0) throw StateError('$name ${encrypt ? "encrypt" : "decrypt"} failed: $rc');
+
+      return Uint8List.fromList(outPtr.asTypedList(input.length));
+    } finally {
+      calloc.free(inPtr);
+      calloc.free(outPtr);
+    }
+  }
+
+  int _dispatch(Pointer<Uint8> inPtr, Pointer<Uint8> outPtr, int len, bool enc) {
+    switch (name) {
+      case 'aes':
+        return enc
+            ? sifar.aes_encrypt(inPtr.cast(), outPtr.cast(), len, _handle)
+            : sifar.aes_decrypt(inPtr.cast(), outPtr.cast(), len, _handle);
+      case 'des':
+        return enc
+            ? sifar.des_encrypt(inPtr.cast(), outPtr.cast(), len, _handle)
+            : sifar.des_decrypt(inPtr.cast(), outPtr.cast(), len, _handle);
+      case 'rc4':
+        return enc
+            ? sifar.rc4_encrypt(inPtr.cast(), outPtr.cast(), len, _handle)
+            : sifar.rc4_decrypt(inPtr.cast(), outPtr.cast(), len, _handle);
+      case 'redpike':
+        return enc
+            ? sifar.redpike_encrypt(inPtr.cast(), outPtr.cast(), len, _handle)
+            : sifar.redpike_decrypt(inPtr.cast(), outPtr.cast(), len, _handle);
+      case 'tea':
+        return enc
+            ? sifar.tea_encrypt(inPtr.cast(), outPtr.cast(), len, _handle)
+            : sifar.tea_decrypt(inPtr.cast(), outPtr.cast(), len, _handle);
+      case 'xtea':
+        return enc
+            ? sifar.xtea_encrypt(inPtr.cast(), outPtr.cast(), len, _handle)
+            : sifar.xtea_decrypt(inPtr.cast(), outPtr.cast(), len, _handle);
+      default:
+        return -1;
+    }
+  }
+
+  void dispose() {
+    switch (name) {
+      case 'aes':      sifar.aes_destroy_key(_handle); break;
+      case 'des':      sifar.des_destroy_key(_handle); break;
+      case 'rc4':      sifar.rc4_destroy_key(_handle); break;
+      case 'redpike':  sifar.redpike_destroy_key(_handle); break;
+      case 'tea':      sifar.tea_destroy_key(_handle); break;
+      case 'xtea':     sifar.xtea_destroy_key(_handle); break;
+    }
+  }
+}
+
+
 class SifarAes {
   final Pointer<Void> _handle;
 

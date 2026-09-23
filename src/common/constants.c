@@ -1,7 +1,7 @@
 #ifndef CONSTANTS_C
 #define CONSTANTS_C
 
-#include "../../include/common/constants.h"
+#include "constants.h"
 // default : the total ASCII characters 128
 int ALPHABET_LENGTH = 256   ; 
 

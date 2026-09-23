@@ -3,7 +3,9 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <string.h>
-#include "../../../include/block_cipher_modes_operation.h"
+#include "../../block_cipher_modes_operation.h"
+
+
 #if 0 
     #define DEBUG
 #endif
@@ -68,9 +70,11 @@ static uint32_t blowfish_ffunc(uint32_t input ,BlowfishKey blowfish_key   ) {
 
 #define ROUNDS_NUM_BLOWFISH 16
 #define BLOCK_SIZE_BLOWFISH 8
-#include "../../../include/common/utils.h" ;
+
+
+#include "../../common/utils.h" ;
 // @input must be 64bit block aka 8 bytes
-void blowfish_encrypt_block(const uchar_t* input, uchar_t* output  , const void* key) {
+int blowfish_encrypt_block(const uchar_t* input, uchar_t* output  , const void* key) {
     BlowfishKey *blowfish_key = (BlowfishKey*) key ; 
     assert(blowfish_key != NULL && "blowfish key should not be null") ;
 
@@ -119,12 +123,12 @@ void blowfish_encrypt_block(const uchar_t* input, uchar_t* output  , const void*
     uint32_t_to_bytes(left , output) ; 
     uint32_t_to_bytes(right , output+4) ; 
 
-
+    return 0 ; 
 }
 // @input must be 64bit block aka 8 bytes
 // NOTES : apparently i could have kept the same encryption routine but only reversed indexes order ...
 // i tried to be smart here you see :(
-void blowfish_decrypt_block(const uchar_t* input, uchar_t* output , const void* key) {
+int blowfish_decrypt_block(const uchar_t* input, uchar_t* output , const void* key) {
     BlowfishKey *blowfish_key = (BlowfishKey*) key ; 
     assert(blowfish_key != NULL && "blow fish key should not be null") ;
 
@@ -165,37 +169,148 @@ void blowfish_decrypt_block(const uchar_t* input, uchar_t* output , const void* 
     uint32_t_to_bytes(left , output) ; 
     uint32_t_to_bytes(right , output+4) ; 
 
-
+    return 0;
 }
 
 
 int blowfish_encrypt(const uchar_t* input, uchar_t* output , int length , const void* key) {
 
-    uchar_t *iv = malloc(sizeof(uchar_t)*BLOCK_SIZE_BLOWFISH) ;
-    blockcipher_encrypt_modeop(input , output , iv , length , BLOCK_SIZE_BLOWFISH , key , blowfish_encrypt_block) ;
-    free(iv);
+    // uchar_t *iv = malloc(sizeof(uchar_t)*BLOCK_SIZE_BLOWFISH) ;
+    // blockcipher_encrypt_modeop(input , output , iv , length , BLOCK_SIZE_BLOWFISH , key , blowfish_encrypt_block) ;
+    // free(iv);
+    int result =  ecb_encrypt( input , output ,  length , BLOCK_SIZE_BLOWFISH  , key , blowfish_encrypt_block  ) ; 
+    if (result != 0) {
+        fprintf(stderr , "ERROR: blowfish_encrypt : something wrong happened , couldnt encrypt \n" ) ;
+        return 1 ;  
+    }
 
-    return 0 ;
+    return 0 ; 
 }
 
 
 
 int blowfish_decrypt(const uchar_t* input, uchar_t* output , int length , const void* key) {
 
-    uchar_t *iv = malloc(sizeof(uchar_t)*BLOCK_SIZE_BLOWFISH) ;
-    blockcipher_decrypt_modeop(input , output , iv , length , BLOCK_SIZE_BLOWFISH , key , blowfish_decrypt_block) ;
-    free(iv);
+    // uchar_t *iv = malloc(sizeof(uchar_t)*BLOCK_SIZE_BLOWFISH) ;
+    // blockcipher_decrypt_modeop(input , output , iv , length , BLOCK_SIZE_BLOWFISH , key , blowfish_decrypt_block) ;
+    
+    int result =  ecb_decrypt( input , output ,  length , BLOCK_SIZE_BLOWFISH  , key , blowfish_decrypt_block  ) ; 
+    if (result != 0) {
+        fprintf(stderr , "ERROR: blowfish_decrypt : something wrong happened , couldnt encrypt \n" ) ;
+        return 1 ;  
+    }
 
     return 0 ; 
 }
 
 
-#include "../../../include/common/utils.h"
+
+int blowfish_encrypt_cbc(const uchar_t* input, uchar_t* output , uchar_t *iv , int length, const void* key)
+{
+
+    int result =  cbc_encrypt( input , output , iv , length , BLOCK_SIZE_BLOWFISH  , key ,blowfish_encrypt_block ) ; ; 
+    if (result != 0) {
+        fprintf(stderr , "ERROR: blowfish_encrypt_cbc : something wrong happened , couldnt encrypt \n" ) ;
+        return 1 ;  
+    }
+
+    return 0 ; 
+}
+
+int blowfish_decrypt_cbc(const uchar_t* input, uchar_t* output , uchar_t *iv, int length, const void* key)
+{
+    int result =  cbc_decrypt( input , output , iv , length , BLOCK_SIZE_BLOWFISH  , key ,blowfish_decrypt_block ) ; ; 
+    if (result != 0) {
+        fprintf(stderr , "ERROR: blowfish_decrypt_cbc : something wrong happened , couldnt encrypt \n" ) ;
+        return 1 ;  
+    }
+
+    return 0 ; 
+}
+
+int blowfish_encrypt_cfb(const uchar_t* input, uchar_t* output , uchar_t *iv , int length, const void* key)
+{
+
+    int result =  cfb_encrypt( input , output , iv , length , BLOCK_SIZE_BLOWFISH  , key ,blowfish_encrypt_block ) ; ; 
+    if (result != 0) {
+        fprintf(stderr , "ERROR: blowfish_encrypt_cfb : something wrong happened , couldnt encrypt \n" ) ;
+        return 1 ;  
+    }
+
+    return 0 ; 
+}
+
+int blowfish_decrypt_cfb(const uchar_t* input, uchar_t* output , uchar_t *iv, int length, const void* key)
+{
+    int result =  cfb_decrypt( input , output , iv , length , BLOCK_SIZE_BLOWFISH  , key ,blowfish_encrypt_block ) ; ; 
+    if (result != 0) {
+        fprintf(stderr , "ERROR: blowfish_decrypt_cfb : something wrong happened , couldnt encrypt \n" ) ;
+        return 1 ;  
+    }
+
+    return 0 ; 
+}
+
+
+int blowfish_encrypt_ofb(const uchar_t* input, uchar_t* output , uchar_t *iv , int length, const void* key)
+{
+
+    int result =  ofb_encrypt( input , output , iv , length , BLOCK_SIZE_BLOWFISH  , key ,blowfish_encrypt_block ) ; ; 
+    if (result != 0) {
+        fprintf(stderr , "ERROR: blowfish_encrypt_ofb : something wrong happened , couldnt encrypt \n" ) ;
+        return 1 ;  
+    }
+
+    return 0 ; 
+}
+
+int blowfish_decrypt_ofb(const uchar_t* input, uchar_t* output , uchar_t *iv, int length, const void* key)
+{
+    int result =  ofb_decrypt( input , output , iv , length , BLOCK_SIZE_BLOWFISH  , key ,blowfish_encrypt_block ) ; ; 
+    if (result != 0) {
+        fprintf(stderr , "ERROR: blowfish_decrypt_ofb : something wrong happened , couldnt encrypt \n" ) ;
+        return 1 ;  
+    }
+
+    return 0 ; 
+}
+
+int blowfish_encrypt_ctr(const uchar_t* input, uchar_t* output , uchar_t *iv , int length, const void* key)
+{
+
+    int result =  ctr_encrypt( input , output , iv , length , BLOCK_SIZE_BLOWFISH  , key ,blowfish_encrypt_block ) ; ; 
+    if (result != 0) {
+        fprintf(stderr , "ERROR: blowfish_encrypt_ctr : something wrong happened , couldnt encrypt \n" ) ;
+        return 1 ;  
+    }
+
+    return 0 ; 
+}
+
+int blowfish_decrypt_ctr(const uchar_t* input, uchar_t* output , uchar_t *iv, int length, const void* key)
+{
+    int result =  ctr_decrypt( input , output , iv , length , BLOCK_SIZE_BLOWFISH  , key ,blowfish_encrypt_block ) ; ; 
+    if (result != 0) {
+        fprintf(stderr , "ERROR: blowfish_decrypt_ctr : something wrong happened , couldnt encrypt \n" ) ;
+        return 1 ;  
+    }
+
+    return 0 ; 
+}
+
+
+
+
+#include "../../common/utils.h"
 int blowfish_set_key(void* key_struct, const uchar_t* key_str , size_t key_len) {
 
     
     BlowfishKey *blowfish_key =(BlowfishKey *)  key_struct ;
-    assert(blowfish_key != NULL &&"dd") ; 
+    // assert(blowfish_key != NULL &&"dd") ; 
+    if (blowfish_key == NULL) {
+        fprintf(stderr , "ERROR: blowfish_key is null\n") ; 
+        return 1 ; 
+    }
     /*
         was taken from : https://www.schneier.com/wp-content/uploads/2015/12/constants-2.txt     
     */
@@ -402,7 +517,10 @@ int blowfish_set_key(void* key_struct, const uchar_t* key_str , size_t key_len) 
     blowfish_key->length = key_len ; 
     
     // printf("INFO:blowfish_key->length %d \n" , blowfish_key->length) ; 
-    
+    if (blowfish_key->length < 4 || blowfish_key->length > 56) {
+        fprintf(stderr , "ERROR : key_len must be (>= 4) AND (<= 56) \n") ; 
+        return 2 ; 
+    }
     assert(blowfish_key->length >= 4 && blowfish_key->length <= 56 && "blowfish_key size") ; 
     
     blowfish_key->key = malloc(sizeof(uchar_t)*blowfish_key->length); 
@@ -490,11 +608,11 @@ int blowfish_set_key(void* key_struct, const uchar_t* key_str , size_t key_len) 
 
     blowfish_key->type = BLOCK_CIPHER ;
 
-
+    return 0 ; 
 }
 
 int blowfish_free_key(void* key_struct) {
-
+    free(key_struct) ; 
     return 0 ; 
 }
 

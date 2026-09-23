@@ -1,4 +1,4 @@
-#include "../../include/common/galois_field_op.h"
+#include "galois_field_op.h"
 
 
 uint16_t keepMSB_16bit(uint16_t a) {

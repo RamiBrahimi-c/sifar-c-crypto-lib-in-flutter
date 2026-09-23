@@ -39,6 +39,6 @@ Cipher* get_cipher(const char* name);
 
 // the name sucks ik :(
 // i let it as global variable to be accessible from anywhere + automatically initilized to 0 (ECB mode) and stored in .BSS :D
-extern BlockCipher_MODE_OP block_cipher_mode_operation ;
+// extern BlockCipher_MODE_OP block_cipher_mode_operation ;
 
 #endif

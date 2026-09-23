@@ -2,8 +2,9 @@
 #include <stdio.h>
 #include <assert.h>
 #include <string.h>
-// #include "../../block_cipher_modes_operation.h"
-#include "../../../include/block_cipher_modes_operation.h"
+
+#include "../../block_cipher_modes_operation.h"
+
 // TODO : maybe we need some refacturing here ?? idk
 // who is even gonna notice *-* ????
 
@@ -13,7 +14,7 @@
     uchar_t *vv : gotta be size of 8 bytes
     uchar_t *kk : gotta be size of 16 bytes
 */
-static void xtea_decrypt_block(const uchar_t *vv ,uchar_t *output,const void *key) {
+static int xtea_decrypt_block(const uchar_t *vv ,uchar_t *output,const void *key) {
     assert(key != NULL && "key is null");
     XTeaKey *xtea_key = (XTeaKey *) (key) ;
     uchar_t *kk = xtea_key->key ;
@@ -100,7 +101,7 @@ static void xtea_decrypt_block(const uchar_t *vv ,uchar_t *output,const void *ke
     uchar_t *vv : gotta be size of 8 bytes
     uchar_t *kk : gotta be size of 16 bytes
 */
-static void xtea_encrypt_block(const uchar_t *vv  , uchar_t *output,const void *key) {
+static int xtea_encrypt_block(const uchar_t *vv  , uchar_t *output,const void *key) {
     assert(key != NULL && "key is null");
     XTeaKey *xtea_key = (XTeaKey *) (key) ;
     uchar_t *kk = xtea_key->key ;
@@ -185,37 +186,158 @@ static void xtea_encrypt_block(const uchar_t *vv  , uchar_t *output,const void *
 
 
 
-void xtea_encrypt(const uchar_t* input, uchar_t* output , int length , const void* key) {
+int xtea_encrypt(const uchar_t* input, uchar_t* output , int length , const void* key) {
+    
 
-    uchar_t *iv = malloc(sizeof(uchar_t)*XTEA_BLOCK_SIZE) ;
-    blockcipher_encrypt_modeop(input , output , iv , length , XTEA_BLOCK_SIZE , key , xtea_encrypt_block) ;
-    free(iv);    
+    int result =  ecb_encrypt( input , output ,  length , XTEA_BLOCK_SIZE  , key , xtea_encrypt_block  ) ; 
+    if (result != 0) {
+        fprintf(stderr , "ERROR: xtea_encrypt : something wrong happened , couldnt encrypt \n" ) ;
+        return 1 ;  
+    }
 
+    return 0 ; 
+    
     
 }
 
 
-void xtea_decrypt(const uchar_t* input, uchar_t* output , int length , const void* key) {
+int xtea_decrypt(const uchar_t* input, uchar_t* output , int length , const void* key) {
 
-    uchar_t *iv = malloc(sizeof(uchar_t)*XTEA_BLOCK_SIZE) ;
-    blockcipher_decrypt_modeop(input , output , iv , length , XTEA_BLOCK_SIZE , key , xtea_decrypt_block) ;
-    free(iv);
-    
+    int result =  ecb_decrypt( input , output ,  length , XTEA_BLOCK_SIZE  , key , xtea_decrypt_block  ) ; 
+    if (result != 0) {
+        fprintf(stderr , "ERROR: xtea_decrypt : something wrong happened , couldnt encrypt \n" ) ;
+        return 1 ;  
+    }
+
+    return 0 ; 
+        
 }
 
 
-void xtea_set_key(void* key_struct, const uchar_t* key_str , size_t key_len) {
+
+
+int xtea_encrypt_cbc(const uchar_t* input, uchar_t* output , uchar_t *iv , int length, const void* key)
+{
+
+    int result =  cbc_encrypt( input , output , iv , length , XTEA_BLOCK_SIZE  , key ,xtea_encrypt_block ) ; ; 
+    if (result != 0) {
+        fprintf(stderr , "ERROR: xtea_encrypt_cbc : something wrong happened , couldnt encrypt \n" ) ;
+        return 1 ;  
+    }
+
+    return 0 ; 
+}
+
+int xtea_decrypt_cbc(const uchar_t* input, uchar_t* output , uchar_t *iv, int length, const void* key)
+{
+    int result =  cbc_decrypt( input , output , iv , length , XTEA_BLOCK_SIZE  , key ,xtea_decrypt_block ) ; ; 
+    if (result != 0) {
+        fprintf(stderr , "ERROR: xtea_decrypt_cbc : something wrong happened , couldnt encrypt \n" ) ;
+        return 1 ;  
+    }
+
+    return 0 ; 
+}
+
+int xtea_encrypt_cfb(const uchar_t* input, uchar_t* output , uchar_t *iv , int length, const void* key)
+{
+
+    int result =  cfb_encrypt( input , output , iv , length , XTEA_BLOCK_SIZE  , key ,xtea_encrypt_block ) ; ; 
+    if (result != 0) {
+        fprintf(stderr , "ERROR: xtea_encrypt_cfb : something wrong happened , couldnt encrypt \n" ) ;
+        return 1 ;  
+    }
+
+    return 0 ; 
+}
+
+int xtea_decrypt_cfb(const uchar_t* input, uchar_t* output , uchar_t *iv, int length, const void* key)
+{
+    int result =  cfb_decrypt( input , output , iv , length , XTEA_BLOCK_SIZE  , key ,xtea_encrypt_block ) ; ; 
+    if (result != 0) {
+        fprintf(stderr , "ERROR: xtea_decrypt_cfb : something wrong happened , couldnt encrypt \n" ) ;
+        return 1 ;  
+    }
+
+    return 0 ; 
+}
+
+
+int xtea_encrypt_ofb(const uchar_t* input, uchar_t* output , uchar_t *iv , int length, const void* key)
+{
+
+    int result =  ofb_encrypt( input , output , iv , length , XTEA_BLOCK_SIZE  , key ,xtea_encrypt_block ) ; ; 
+    if (result != 0) {
+        fprintf(stderr , "ERROR: xtea_encrypt_ofb : something wrong happened , couldnt encrypt \n" ) ;
+        return 1 ;  
+    }
+
+    return 0 ; 
+}
+
+int xtea_decrypt_ofb(const uchar_t* input, uchar_t* output , uchar_t *iv, int length, const void* key)
+{
+    int result =  ofb_decrypt( input , output , iv , length , XTEA_BLOCK_SIZE  , key ,xtea_encrypt_block ) ; ; 
+    if (result != 0) {
+        fprintf(stderr , "ERROR: xtea_decrypt_ofb : something wrong happened , couldnt encrypt \n" ) ;
+        return 1 ;  
+    }
+
+    return 0 ; 
+}
+
+int xtea_encrypt_ctr(const uchar_t* input, uchar_t* output , uchar_t *iv , int length, const void* key)
+{
+
+    int result =  ctr_encrypt( input , output , iv , length , XTEA_BLOCK_SIZE  , key ,xtea_encrypt_block ) ; ; 
+    if (result != 0) {
+        fprintf(stderr , "ERROR: xtea_encrypt_ctr : something wrong happened , couldnt encrypt \n" ) ;
+        return 1 ;  
+    }
+
+    return 0 ; 
+}
+
+int xtea_decrypt_ctr(const uchar_t* input, uchar_t* output , uchar_t *iv, int length, const void* key)
+{
+    int result =  ctr_decrypt( input , output , iv , length , XTEA_BLOCK_SIZE  , key ,xtea_encrypt_block ) ; ; 
+    if (result != 0) {
+        fprintf(stderr , "ERROR: xtea_decrypt_ctr : something wrong happened , couldnt encrypt \n" ) ;
+        return 1 ;  
+    }
+
+    return 0 ; 
+}
+
+
+int xtea_set_key(void* key_struct, const uchar_t* key_str , size_t key_len) {
     XTeaKey *xtea_key = (XTeaKey *) key_struct ;
-    
+    if (xtea_key==NULL) {
+        fprintf(stderr , "ERROR: xtea_key or (key_struct) is NULL\n") ; 
+        return 1 ; 
+    }
+    if (key_str==NULL) {
+        fprintf(stderr , "ERROR: key_str is NULL\n") ; 
+        return 2 ; 
+    }
+    if (key_len < 16) {
+        fprintf(stderr , "ERROR: key_len is too short , needs to be (=16) bytes \n") ; 
+        return 3 ; 
+    }
     // how can we make sure that key_str is actually TEA_KEY_MAX_SIZE bytes ...
     assert(key_len >= 16 && "key length here must be 16 bytes");    
     memcpy(xtea_key->key , key_str , sizeof(uchar_t)*XTEA_KEY_MAX_SIZE) ; 
     xtea_key->length = XTEA_KEY_MAX_SIZE   ; 
     xtea_key->type = BLOCK_CIPHER ; 
+
+    return 0 ; 
 }
 
 
-void xtea_free_key(void* key_struct);
+int xtea_free_key(void* key_struct) {
+    free(key_struct) ; 
+    return 0 ; 
+}
 
 Cipher* get_xtea_cipher(void);
 

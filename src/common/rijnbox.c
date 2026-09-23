@@ -6,8 +6,8 @@
 
 
 #include <stdio.h>
-#include "../../include/common/rijnbox.h"
-#include "../../include/common/galois_field_op.h"
+#include "rijnbox.h"
+#include "galois_field_op.h"
 
 
 #define ROTL8(x,shift) ((uchar_t) ((x) << (shift)) | ((x) >> (8 - (shift))))

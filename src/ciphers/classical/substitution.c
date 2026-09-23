@@ -2,8 +2,8 @@
 #define SUBSTITUTION_C
 
 
-#include "../../../include/ciphers/classical/substitution.h"
-#include "../../../include/common/utils.h"
+#include "substitution.h"
+#include "../..//common/utils.h"
 #include <assert.h>
 #include <stdio.h>
 #include <string.h>

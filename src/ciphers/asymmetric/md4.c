@@ -1,4 +1,5 @@
 #include "../../../include/ciphers/hashing/hash.h"
+#include "../../../include/ciphers/hashing/hash_padding.h"
 
 /*
     the manuel : https://datatracker.ietf.org/doc/html/rfc1186#autoid-4
@@ -327,9 +328,12 @@ uchar_t* md4_padding(uchar_t M[] , uint64_t b , uint64_t *output_length ) {
 
 
 
-void md4_hash(uchar_t M[] , int N , uchar_t *output) {
+void md4_hash(uchar_t original_input[] , int length , uchar_t *output) {
 
-
+    uint64_t new_length = 0 ; 
+    uchar_t *M  = md4_padding(original_input , 8*length , &new_length  ) ; 
+    
+    int N = new_length/8; 
 
     uchar_t A[4] , B[4] , C[4] , D[4] ;
 
@@ -492,6 +496,6 @@ void md4_hash(uchar_t M[] , int N , uchar_t *output) {
     memcpy(output + 8, C , sizeof(uchar_t)*4) ;
     memcpy(output + 12, D , sizeof(uchar_t)*4) ;
 
-
+    free(M) ; 
     // PRINT_ARRAY(result , 16 , "%.2x") ;
 }

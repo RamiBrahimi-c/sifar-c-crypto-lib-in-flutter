@@ -23,6 +23,7 @@
         } \
         printf("\n"); \
     } while (0)
+
 // no length line printed
 #define PRINT_ARRAY_NAI(array , length , format) \
     do { \

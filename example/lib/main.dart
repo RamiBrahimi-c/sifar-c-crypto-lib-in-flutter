@@ -194,10 +194,10 @@ class _TextTabState extends State<_TextTab> {
       final raw = Uint8List.fromList(utf8.encode(_plainCtrl.text));
       final plain = _pad(raw, blockSize);
 
-      final aes = SifarAes(key); // (still AES-only wrapper; see notes below)
-      final enc = aes.encrypt(plain);
-      final dec = aes.decrypt(enc);
-      aes.dispose();
+      final cipher = SifarCipher(widget.cipher, key);
+      final enc = cipher.encrypt(plain);
+      final dec = cipher.decrypt(enc);
+      cipher.dispose();
 
       setState(() {
         _busy = false;
