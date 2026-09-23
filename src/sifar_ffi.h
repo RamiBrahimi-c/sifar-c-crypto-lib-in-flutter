@@ -90,6 +90,7 @@ int decrypt_image_file(char* name, uchar_t* input_path, uchar_t* output_path,
 
 
 int get_block_size(const char* cipher_name);  // returns 0 if unknown
+int get_key_size(const char* cipher_name) ;
 
 
 #endif
