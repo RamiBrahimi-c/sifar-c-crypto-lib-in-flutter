@@ -965,7 +965,11 @@ int des_set_key(void* key_struct, const uchar_t* key_str , size_t key_len) {
         fprintf(stderr , "ERROR: key_str is NULL\n") ; 
         return 2 ; 
     }
+    if (key_len != 8) {
+        fprintf(stderr , "ERROR: key_len is %d (it must be 8 bytes !!!)\n" , key_len) ; 
+        return 3 ; 
 
+    }
     memcpy(des_key->key , key_str ,8 ) ; 
     // printf("key set to : \n") ; 
     des_key->type = BLOCK_CIPHER ;

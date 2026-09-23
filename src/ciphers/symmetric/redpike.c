@@ -247,10 +247,11 @@ int redpike_set_key(void* key_struct, const uchar_t* key_str , size_t key_len) {
 		return 1 ;  
 	}
 	
-	if (key_len < 8) {
-		fprintf(stderr , "ERROR : key_len is too short must be (>=8) bytes \n") ;
+	if (key_len != 8) {
+		fprintf(stderr , "ERROR : key_len is too short must be (=8) bytes \n") ;
 		return 2 ;  
 	}
+
     // how can we make sure that key_str is actually 8 bytes ...
     assert(key_len >= 8 && "key length here must be 8 bytes");
     memcpy(redpike_key->key , key_str , sizeof(uchar_t)*REDPIKE_KEY_MAX_SIZE) ; 

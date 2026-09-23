@@ -1015,6 +1015,12 @@ int tdes_set_key(void* key_struct, const uchar_t* key_str , size_t key_len) {
         return 2 ; 
     }
 
+    if (key_len != 24) {
+        fprintf(stderr , "ERROR: key_len is %d (it must be 24 bytes !!!)\n" , key_len) ; 
+        return 3 ; 
+
+    }
+
     memcpy(tdes_key->key , key_str ,24 ) ; 
     // printf("key set to : \n") ; 
     tdes_key->type = BLOCK_CIPHER ;
