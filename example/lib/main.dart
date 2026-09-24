@@ -13,7 +13,9 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) => MaterialApp(
     title: 'Sifar',
-    theme: ThemeData(useMaterial3: true, colorSchemeSeed: Colors.indigo),
+    themeMode: ThemeMode.system,
+  theme: ThemeData(useMaterial3: true, colorSchemeSeed: Colors.indigo, brightness: Brightness.light),
+    darkTheme: ThemeData(useMaterial3: true, colorSchemeSeed: Colors.indigo, brightness: Brightness.dark),
     home: const HomePage(),
   );
 }
