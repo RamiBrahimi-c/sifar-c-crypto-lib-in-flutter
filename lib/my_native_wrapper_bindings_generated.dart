@@ -398,6 +398,9 @@ external int decrypt_image_file(
 @ffi.Native<ffi.Int Function(ffi.Pointer<ffi.Char>)>()
 external int get_block_size(ffi.Pointer<ffi.Char> cipher_name);
 
+@ffi.Native<ffi.Int Function(ffi.Pointer<ffi.Char>)>()
+external int get_key_size(ffi.Pointer<ffi.Char> cipher_name);
+
 /// Opaque handles — Dart only ever sees pointers to these
 /// typedef struct AesKey AesKey;
 /// typedef struct DesKey DesKey;
