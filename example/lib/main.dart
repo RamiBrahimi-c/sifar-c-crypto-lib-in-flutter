@@ -22,7 +22,7 @@ class MyApp extends StatelessWidget {
 
 /// Ciphers exposed in the dropdown. Must match names accepted by
 /// `get_block_size` in C and by the C encrypt/decrypt functions.
-const _ciphers = ['aes', 'des', 'blowfish', 'tea', 'xtea', 'rc4' , 'redpike'];
+const _ciphers = ['aes', 'des' , '3des' , 'blowfish', 'tea', 'xtea', 'rc4' , 'redpike'];
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -64,12 +64,33 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     }
   }
 
+  String _keyHint() {
+    switch (_cipher) {
+      case 'aes':      return '16, 24, or 32 bytes → 32, 48, or 64 hex chars';
+      case 'des':      return '8 bytes → 16 hex chars';
+      case '3des':     return '24 bytes → 48 hex chars';
+      case 'blowfish': return 'variable 1–56 bytes';
+      case 'rc4':      return 'variable 1–256 bytes';
+      case 'tea':      return '16 bytes → 32 hex chars';
+      case 'xtea':     return '16 bytes → 32 hex chars';
+      case 'redpike':  return '16 bytes → 32 hex chars';
+      default:         return '';
+    }
+  }
+
   Uint8List _requireKey() {
     final key = _hexToBytes(_keyCtrl.text);
     if (key == null) throw ArgumentError('Key must be valid hex');
-    if (key.length != 16 && key.length != 24 && key.length != 32) {
-      throw ArgumentError('Key must be 16/24/32 bytes');
+
+    final expected = keySizeOf(_cipher);
+    // expected == -1 means variable-length cipher; C will validate
+    if (expected > 0 && key.length != expected) {
+      throw ArgumentError(
+        '${_cipher.toUpperCase()} requires $expected bytes (${expected * 2} hex chars), '
+        'got ${key.length}',
+      );
     }
+    // expected == -1: variable ciphers (blowfish, rc4) — C-side validates
     return key;
   }
 
@@ -92,10 +113,10 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
               children: [
                 TextField(
                   controller: _keyCtrl,
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     labelText: 'Key (hex)',
-                    helperText: '32 hex = AES-128 · 48 = AES-192 · 64 = AES-256',
-                    border: OutlineInputBorder(),
+                    helperText: _keyHint(),
+                    border: const OutlineInputBorder(),
                   ),
                 ),
                 const SizedBox(height: 12),

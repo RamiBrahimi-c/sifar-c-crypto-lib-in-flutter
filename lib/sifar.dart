@@ -17,6 +17,17 @@ int blockSizeOf(String cipher) {
   }
 }
 
+/// Returns expected key size in bytes for the given cipher.
+/// Returns -1 for variable-length ciphers (blowfish, rc4).
+/// Returns 0 for unknown ciphers.
+int keySizeOf(String cipher) {
+  final ptr = cipher.toNativeUtf8();
+  try {
+    return sifar.get_key_size(ptr.cast<ffi.Char>());
+  } finally {
+    malloc.free(ptr);
+  }
+}
 
 class SifarCipher {
   final String name;
