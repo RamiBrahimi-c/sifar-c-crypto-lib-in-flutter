@@ -253,7 +253,7 @@ int redpike_set_key(void* key_struct, const uchar_t* key_str , size_t key_len) {
 	}
 
     // how can we make sure that key_str is actually 8 bytes ...
-    assert(key_len >= 8 && "key length here must be 8 bytes");
+    assert(key_len == 8 && "key length here must be 8 bytes");
     memcpy(redpike_key->key , key_str , sizeof(uchar_t)*REDPIKE_KEY_MAX_SIZE) ; 
     redpike_key->constant = CONST ; 
 

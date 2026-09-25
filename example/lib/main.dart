@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:my_native_wrapper/sifar.dart';
+import 'dart:math';
 
 void main() => runApp(const MyApp());
 
@@ -41,15 +42,26 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   void initState() {
     super.initState();
     _tabs = TabController(length: 2, vsync: this);
+    _keyCtrl.addListener(_onKeyChanged);   
   }
 
   @override
   void dispose() {
+    _keyCtrl.removeListener(_onKeyChanged);
     _tabs.dispose();
     _keyCtrl.dispose();
     super.dispose();
   }
 
+  void _onKeyChanged() => setState(() {});  // rebuild to re-evaluate
+
+  bool get _keyIsValid {
+    final key = _hexToBytes(_keyCtrl.text);
+    if (key == null) return false;
+    final expected = keySizeOf(_cipher);
+    if (expected > 0) return key.length == expected;
+    return key.isNotEmpty;   // variable ciphers: anything non-empty
+  }
   // ---- helpers shared by both tabs ----
   Uint8List? _hexToBytes(String hex) {
     hex = hex.replaceAll(RegExp(r'\s'), '');
@@ -73,7 +85,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       case 'rc4':      return 'variable 1–256 bytes';
       case 'tea':      return '16 bytes → 32 hex chars';
       case 'xtea':     return '16 bytes → 32 hex chars';
-      case 'redpike':  return '16 bytes → 32 hex chars';
+      case 'redpike':  return '8 bytes → 16 hex chars';
       default:         return '';
     }
   }
@@ -94,6 +106,19 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     return key;
   }
 
+
+
+
+  void _generateKey() {
+    final expected = keySizeOf(_cipher);
+    final length = expected > 0 ? expected : 16;   // 16 for variable ciphers
+    final rng = Random.secure();
+    final key = Uint8List.fromList(
+      List.generate(length, (_) => rng.nextInt(256)),
+    );
+    _keyCtrl.text = key.map((b) => b.toRadixString(16).padLeft(2, '0')).join();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -107,17 +132,45 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       body: Column(
         children: [
           // Shared controls: key + cipher selection
-          Padding(
+                    Padding(
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
             child: Column(
               children: [
-                TextField(
-                  controller: _keyCtrl,
-                  decoration: InputDecoration(
-                    labelText: 'Key (hex)',
-                    helperText: _keyHint(),
-                    border: const OutlineInputBorder(),
-                  ),
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        controller: _keyCtrl,
+                        decoration: InputDecoration(
+                          labelText: 'Key (hex)',
+                          helperText: _keyHint(),
+                          border: const OutlineInputBorder(),
+                          enabledBorder: OutlineInputBorder(
+                            borderSide: BorderSide(
+                              color: _keyCtrl.text.isEmpty
+                                  ? Theme.of(context).colorScheme.outline
+                                  : (_keyIsValid ? Colors.green : Colors.red),
+                              width: 2,
+                            ),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderSide: BorderSide(
+                              color: _keyCtrl.text.isEmpty
+                                  ? Theme.of(context).colorScheme.primary
+                                  : (_keyIsValid ? Colors.green : Colors.red),
+                              width: 2,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    IconButton(
+                      onPressed: _generateKey,
+                      icon: const Icon(Icons.casino),
+                      tooltip: 'Random key',
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 12),
                 Row(

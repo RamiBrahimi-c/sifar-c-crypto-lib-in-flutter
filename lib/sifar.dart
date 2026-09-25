@@ -43,12 +43,14 @@ class SifarCipher {
 
     final Pointer<Void> handle;
     switch (name) {
-      case 'aes':      handle = sifar.aes_new_key(keyPtr.cast(), key.length); break;
-      case 'des':      handle = sifar.des_new_key(keyPtr.cast(), key.length); break;
-      case 'rc4':      handle = sifar.rc4_new_key(keyPtr.cast(), key.length); break;
-      case 'redpike':  handle = sifar.redpike_new_key(keyPtr.cast(), key.length); break;
-      case 'tea':      handle = sifar.tea_new_key(keyPtr.cast(), key.length); break;
-      case 'xtea':     handle = sifar.xtea_new_key(keyPtr.cast(), key.length); break;
+      case 'aes':       handle = sifar.aes_new_key(keyPtr.cast(), key.length); break;
+      case 'des':       handle = sifar.des_new_key(keyPtr.cast(), key.length); break;
+      case '3des':      handle = sifar.tdes_new_key(keyPtr.cast(), key.length); break;
+      case 'blowfish':  handle = sifar.blowfish_new_key(keyPtr.cast(), key.length); break;
+      case 'rc4':       handle = sifar.rc4_new_key(keyPtr.cast(), key.length); break;
+      case 'redpike':   handle = sifar.redpike_new_key(keyPtr.cast(), key.length); break;
+      case 'tea':       handle = sifar.tea_new_key(keyPtr.cast(), key.length); break;
+      case 'xtea':      handle = sifar.xtea_new_key(keyPtr.cast(), key.length); break;
       default:
         calloc.free(keyPtr);
         throw ArgumentError('Unknown cipher: $name');
@@ -88,6 +90,14 @@ class SifarCipher {
         return enc
             ? sifar.des_encrypt(inPtr.cast(), outPtr.cast(), len, _handle)
             : sifar.des_decrypt(inPtr.cast(), outPtr.cast(), len, _handle);
+      case '3des':
+        return enc
+            ? sifar.tdes_encrypt(inPtr.cast(), outPtr.cast(), len, _handle)
+            : sifar.tdes_decrypt(inPtr.cast(), outPtr.cast(), len, _handle);
+      case 'blowfish':
+        return enc
+            ? sifar.blowfish_encrypt(inPtr.cast(), outPtr.cast(), len, _handle)
+            : sifar.blowfish_decrypt(inPtr.cast(), outPtr.cast(), len, _handle);
       case 'rc4':
         return enc
             ? sifar.rc4_encrypt(inPtr.cast(), outPtr.cast(), len, _handle)
@@ -111,12 +121,14 @@ class SifarCipher {
 
   void dispose() {
     switch (name) {
-      case 'aes':      sifar.aes_destroy_key(_handle); break;
-      case 'des':      sifar.des_destroy_key(_handle); break;
-      case 'rc4':      sifar.rc4_destroy_key(_handle); break;
-      case 'redpike':  sifar.redpike_destroy_key(_handle); break;
-      case 'tea':      sifar.tea_destroy_key(_handle); break;
-      case 'xtea':     sifar.xtea_destroy_key(_handle); break;
+      case 'aes':           sifar.aes_destroy_key(_handle); break;
+      case 'des':           sifar.des_destroy_key(_handle); break;
+      case '3des':          sifar.tdes_destroy_key(_handle); break;
+      case 'blowfish':      sifar.blowfish_destroy_key(_handle); break;
+      case 'rc4':           sifar.rc4_destroy_key(_handle); break;
+      case 'redpike':       sifar.redpike_destroy_key(_handle); break;
+      case 'tea':           sifar.tea_destroy_key(_handle); break;
+      case 'xtea':          sifar.xtea_destroy_key(_handle); break;
     }
   }
 }

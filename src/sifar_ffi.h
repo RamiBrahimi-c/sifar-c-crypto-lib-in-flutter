@@ -33,6 +33,12 @@ int tdes_set_key(void* key_struct, const uchar_t* key_str, size_t key_len);
 int tdes_free_key(void* key_struct);
 
 // Public AES API — the only things Dart will call
+int blowfish_encrypt(const uchar_t* input, uchar_t* output, int length, const void* key);
+int blowfish_decrypt(const uchar_t* input, uchar_t* output, int length, const void* key);
+int blowfish_set_key(void* key_struct, const uchar_t* key_str, size_t key_len);
+int blowfish_free_key(void* key_struct);
+
+// Public AES API — the only things Dart will call
 int rc4_encrypt(const uchar_t* input, uchar_t* output, int length, const void* key);
 int rc4_decrypt(const uchar_t* input, uchar_t* output, int length, const void* key);
 int rc4_set_key(void* key_struct, const uchar_t* key_str, size_t key_len);
@@ -63,6 +69,12 @@ void aes_destroy_key(void* k) ;
 
 void* des_new_key(const uchar_t* key, size_t key_len);
 void  des_destroy_key(void* k);
+
+void* tdes_new_key(const uchar_t* key, size_t key_len);
+void  tdes_destroy_key(void* k);
+
+void* blowfish_new_key(const uchar_t* key, size_t key_len);
+void  blowfish_destroy_key(void* k);
 
 void* rc4_new_key(const uchar_t* key, size_t key_len);
 void  rc4_destroy_key(void* k);

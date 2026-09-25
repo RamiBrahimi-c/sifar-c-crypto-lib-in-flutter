@@ -443,7 +443,7 @@ int get_block_size(const char* cipher_name) {
     if (!cipher_name) return 0;
     if (strcmp(cipher_name, "aes") == 0)      return 16;
     if (strcmp(cipher_name, "des") == 0)      return 8;
-    if (strcmp(cipher_name, "tdes") == 0)      return 8;
+    if (strcmp(cipher_name, "3des") == 0)      return 8;
     if (strcmp(cipher_name, "blowfish") == 0) return 8;
     if (strcmp(cipher_name, "tea") == 0)      return 8;
     if (strcmp(cipher_name, "xtea") == 0)     return 8;
@@ -469,6 +469,6 @@ int get_key_size(const char* cipher_name) {
     if (strcmp(cipher_name, "rc4") == 0)      return -1;   // variable 1-256
     if (strcmp(cipher_name, "tea") == 0)      return 16;
     if (strcmp(cipher_name, "xtea") == 0)     return 16;
-    if (strcmp(cipher_name, "redpike") == 0)  return 16;
+    if (strcmp(cipher_name, "redpike") == 0)  return 8;
     return 0;
 }

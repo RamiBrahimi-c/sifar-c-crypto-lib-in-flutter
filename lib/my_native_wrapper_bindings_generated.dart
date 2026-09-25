@@ -142,6 +142,49 @@ external int tdes_free_key(ffi.Pointer<ffi.Void> key_struct);
     ffi.Pointer<ffi.Void>,
   )
 >()
+external int blowfish_encrypt(
+  ffi.Pointer<uchar_t> input,
+  ffi.Pointer<uchar_t> output,
+  int length,
+  ffi.Pointer<ffi.Void> key,
+);
+
+@ffi.Native<
+  ffi.Int Function(
+    ffi.Pointer<uchar_t>,
+    ffi.Pointer<uchar_t>,
+    ffi.Int,
+    ffi.Pointer<ffi.Void>,
+  )
+>()
+external int blowfish_decrypt(
+  ffi.Pointer<uchar_t> input,
+  ffi.Pointer<uchar_t> output,
+  int length,
+  ffi.Pointer<ffi.Void> key,
+);
+
+@ffi.Native<
+  ffi.Int Function(ffi.Pointer<ffi.Void>, ffi.Pointer<uchar_t>, ffi.Size)
+>()
+external int blowfish_set_key(
+  ffi.Pointer<ffi.Void> key_struct,
+  ffi.Pointer<uchar_t> key_str,
+  int key_len,
+);
+
+@ffi.Native<ffi.Int Function(ffi.Pointer<ffi.Void>)>()
+external int blowfish_free_key(ffi.Pointer<ffi.Void> key_struct);
+
+/// Public AES API — the only things Dart will call
+@ffi.Native<
+  ffi.Int Function(
+    ffi.Pointer<uchar_t>,
+    ffi.Pointer<uchar_t>,
+    ffi.Int,
+    ffi.Pointer<ffi.Void>,
+  )
+>()
 external int rc4_encrypt(
   ffi.Pointer<uchar_t> input,
   ffi.Pointer<uchar_t> output,
@@ -321,6 +364,24 @@ external ffi.Pointer<ffi.Void> des_new_key(
 
 @ffi.Native<ffi.Void Function(ffi.Pointer<ffi.Void>)>()
 external void des_destroy_key(ffi.Pointer<ffi.Void> k);
+
+@ffi.Native<ffi.Pointer<ffi.Void> Function(ffi.Pointer<uchar_t>, ffi.Size)>()
+external ffi.Pointer<ffi.Void> tdes_new_key(
+  ffi.Pointer<uchar_t> key,
+  int key_len,
+);
+
+@ffi.Native<ffi.Void Function(ffi.Pointer<ffi.Void>)>()
+external void tdes_destroy_key(ffi.Pointer<ffi.Void> k);
+
+@ffi.Native<ffi.Pointer<ffi.Void> Function(ffi.Pointer<uchar_t>, ffi.Size)>()
+external ffi.Pointer<ffi.Void> blowfish_new_key(
+  ffi.Pointer<uchar_t> key,
+  int key_len,
+);
+
+@ffi.Native<ffi.Void Function(ffi.Pointer<ffi.Void>)>()
+external void blowfish_destroy_key(ffi.Pointer<ffi.Void> k);
 
 @ffi.Native<ffi.Pointer<ffi.Void> Function(ffi.Pointer<uchar_t>, ffi.Size)>()
 external ffi.Pointer<ffi.Void> rc4_new_key(
