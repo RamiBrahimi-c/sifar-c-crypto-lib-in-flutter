@@ -6,6 +6,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:my_native_wrapper/sifar.dart';
 import 'dart:math';
+import 'package:flutter/services.dart';
 
 void main() => runApp(const MyApp());
 
@@ -216,7 +217,6 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     );
   }
 }
-
 // ============================================================
 // TEXT TAB
 // ============================================================
@@ -241,10 +241,19 @@ class _TextTabState extends State<_TextTab> {
   bool _busy = false;
 
   @override
+  void initState() {
+    super.initState();
+    _plainCtrl.addListener(_onChanged);
+  }
+
+  @override
   void dispose() {
+    _plainCtrl.removeListener(_onChanged);
     _plainCtrl.dispose();
     super.dispose();
   }
+
+  void _onChanged() => setState(() {});
 
   String _bytesToHex(Uint8List b) =>
       b.map((x) => x.toRadixString(16).padLeft(2, '0')).join();
@@ -255,6 +264,28 @@ class _TextTabState extends State<_TextTab> {
     padded.setAll(0, data);
     padded.fillRange(data.length, padded.length, padLen);
     return padded;
+  }
+
+  /// Live preview — silently returns null if anything's off.
+  String? _liveCipherHex() {
+    if (_plainCtrl.text.isEmpty) return null;
+    if (_plainCtrl.text.length > 256) return '(too long for live preview)';
+
+    try {
+      final blockSize = blockSizeOf(widget.cipher);
+      if (blockSize <= 0) return null;
+
+      final key = widget.requireKey();
+      final raw = Uint8List.fromList(utf8.encode(_plainCtrl.text));
+      final plain = _pad(raw, blockSize);
+
+      final cipher = SifarCipher(widget.cipher, key);
+      final enc = cipher.encrypt(plain);
+      cipher.dispose();
+      return _bytesToHex(enc);
+    } catch (_) {
+      return null;
+    }
   }
 
   void _run() {
@@ -304,20 +335,54 @@ class _TextTabState extends State<_TextTab> {
               border: OutlineInputBorder(),
             ),
           ),
+          const SizedBox(height: 8),
+          // ---- live preview box ----
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surfaceContainerHighest,
+              borderRadius: BorderRadius.circular(6),
+            ),
+            child: SelectableText(
+              _liveCipherHex() ?? '(type plaintext to see live ciphertext)',
+              style: const TextStyle(fontFamily: 'monospace', fontSize: 11),
+              maxLines: 3,
+            ),
+          ),
           const SizedBox(height: 12),
           Expanded(
-            child: Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: SingleChildScrollView(
-                child: SelectableText(
-                  _status.isEmpty ? '(result here)' : _status,
-                  style: const TextStyle(fontFamily: 'monospace', fontSize: 13),
+            child: Stack(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: SingleChildScrollView(
+                    child: SelectableText(
+                      _status.isEmpty ? '(result here)' : _status,
+                      style: const TextStyle(
+                          fontFamily: 'monospace', fontSize: 13),
+                    ),
+                  ),
                 ),
-              ),
+                if (_status.isNotEmpty)
+                  Positioned(
+                    top: 4,
+                    right: 4,
+                    child: IconButton(
+                      icon: const Icon(Icons.copy, size: 18),
+                      tooltip: 'Copy result',
+                      onPressed: () {
+                        Clipboard.setData(ClipboardData(text: _status));
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Copied')),
+                        );
+                      },
+                    ),
+                  ),
+              ],
             ),
           ),
           const SizedBox(height: 12),
@@ -333,7 +398,6 @@ class _TextTabState extends State<_TextTab> {
     );
   }
 }
-
 // ============================================================
 // IMAGE TAB
 // ============================================================
