@@ -11,10 +11,13 @@
 
 
 
-void hill_encrypt(const uchar_t* input, uchar_t* output , int length, const void* key) {
+int hill_encrypt(const uchar_t* input, uchar_t* output , size_t length, const void* key) {
     assert(key != NULL && "key is null");
     HillKey *hill_key = (HillKey *) (key) ;
-    
+    if (hill_key) {
+        fprintf(stderr , "ERROR : hill_key is null \n "  ) ; 
+        return 1 ; 
+    }
     int step = hill_key->n ; 
 
     // just temporary stuff to hold results in apropriate format
@@ -59,15 +62,19 @@ void hill_encrypt(const uchar_t* input, uchar_t* output , int length, const void
         
     }
 
-
+    return 0 ; 
     
 }
 
 
-void hill_decrypt(const uchar_t* input, uchar_t* output, const void* key) {
+int hill_decrypt(const uchar_t* input, uchar_t* output ,  size_t length, const void* key) {
     assert(key != NULL && "key is null");
     HillKey *hill_key = (HillKey *) (key) ;
-    
+    if (hill_key) {
+        fprintf(stderr , "ERROR : hill_key is null \n "  ) ; 
+        return 1 ; 
+    }
+
     int step = hill_key->n ; 
     // just temporary stuff to hold results in apropriate format
     uchar_t matrix1[MATRIX_MAX_DEGREE][MATRIX_MAX_DEGREE] ;
@@ -85,14 +92,13 @@ void hill_decrypt(const uchar_t* input, uchar_t* output, const void* key) {
     
     uchar_t result[MATRIX_MAX_DEGREE][MATRIX_MAX_DEGREE] ;
     
-    int length = strlen((char *) input) ; 
     
     printf("alpha num : %d \n" , ALPHABET_LENGTH) ; 
     printf("length : %d\n" , length ) ; 
     
 
     size_t loop_times = strlen((char *) input)/step ;
-    if (strlen((char *) input) %  step != 0 )
+    if (length %  step != 0 )
     {
         loop_times++ ; 
     }
@@ -122,18 +128,23 @@ void hill_decrypt(const uchar_t* input, uchar_t* output, const void* key) {
     // printf("in decrypt function \n");
 
     // PRINT_ARRAY(output , strlen(output));
-    output[strlen((const char *) input)-1] = '\0' ; 
+    output[length-1] = '\0' ; 
     // PRINT_ARRAY(output , strlen(output));
     // printf("in decrypt function \n");
+
+    return 0 ; 
 }
 
 
 
 
 
-void hill_set_key(void* key_struct, const uchar_t* key_str , size_t key_len) {
+int hill_set_key(void* key_struct, const uchar_t* key_str , size_t key_len) {
     HillKey *hill_key = (HillKey*) key_struct ;
-
+    if (hill_key) {
+        fprintf(stderr , "ERROR : hill_key is null \n "  ) ; 
+        return 1 ; 
+    }
     uint64_t matrix_degree = atoi(key_str) ; 
     
 
@@ -189,11 +200,14 @@ void hill_set_key(void* key_struct, const uchar_t* key_str , size_t key_len) {
     // }
     
 
-    
+    return 0 ; 
 }
 
 
-void hill_free_key(void* key_struct) ;
+int hill_free_key(void* key_struct) {
+    free(key_struct) ; 
+    return 0 ; 
+}
 
 Cipher* get_hill_cipher(void);
 

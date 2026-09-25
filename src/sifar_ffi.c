@@ -303,86 +303,108 @@ static int handle_decryption(char *algo , uchar_t *key_str , size_t key_len , uc
         
     }
 
-    // else if (strcmp(algo , "des"))
-    // {
-    //     void *key_cipher = (void*) calloc(1 , sizeof(DesKey)) ;
-    //     // cprintf( YELLOW , "INFO: setting key... \n");
-    //     des_set_key(key_cipher , key_str ,  key_len) ; 
-    //     des_encrypt(original_text ,encrypted_text , length , key_cipher ) ;
-    //     return 0 ; 
+    else if (strcmp(algo , "des")==0)
+    {
+        void *key_cipher = (void*) calloc(1 , sizeof(DesKey)) ;
+        if (key_cipher == NULL) {
+            fprintf(stderr, "ERROR : calloc failed to allocate %ld bytes \n", sizeof(DesKey) ) ; 
+            return 1;
+        }
+        des_set_key(key_cipher , key_str ,  key_len) ; 
+        des_decrypt(original_text ,encrypted_text , length , key_cipher ) ;
+        return 0 ; 
         
-    // }
-    // else if (strcmp(algo , "tea"))
-    // {
-    //     void *key_cipher = (void*) calloc(1 , sizeof(TeaKey)) ;
-    //     // cprintf( YELLOW , "INFO: setting key... \n");
-    //     tea_set_key(key_cipher , key_str ,  key_len) ; 
-    //     tea_encrypt(original_text ,encrypted_text , length , key_cipher ) ;
-    //     return 0 ; 
+    }
+    else if (strcmp(algo , "tea")==0)
+    {
+        void *key_cipher = (void*) calloc(1 , sizeof(TeaKey)) ;
+        if (key_cipher == NULL) {
+            fprintf(stderr, "ERROR : calloc failed to allocate %ld bytes \n", sizeof(TeaKey) ) ; 
+            return 1;
+        }
+        tea_set_key(key_cipher , key_str ,  key_len) ; 
+        tea_decrypt(original_text ,encrypted_text , length , key_cipher ) ;
+        return 0 ; 
         
-    // }
-    // else if (strcmp(algo , "xtea"))
-    // {
-    //     void *key_cipher = (void*) calloc(1 , sizeof(XTeaKey)) ;
+    }
+
+    else if (strcmp(algo , "xtea")==0)
+    {
+        void *key_cipher = (void*) calloc(1 , sizeof(XTeaKey)) ;
+        if (key_cipher == NULL) {
+            fprintf(stderr, "ERROR : calloc failed to allocate %ld bytes \n", sizeof(XTeaKey) ) ; 
+            return 1;
+        }        
+        xtea_set_key(key_cipher , key_str ,  key_len) ; 
+        xtea_decrypt(original_text ,encrypted_text , length , key_cipher ) ;
+        return 0 ; 
         
-    //     // cprintf( YELLOW , "INFO: setting key... \n");
-    //     xtea_set_key(key_cipher , key_str ,  key_len) ; 
-    //     xtea_encrypt(original_text ,encrypted_text , length , key_cipher ) ;
-    //     return 0 ; 
+    }
+    else if (strcmp(algo , "redpike")==0)
+    {
+        void *key_cipher = (void*) calloc(1 , sizeof(RedpikeKey)) ;
+        if (key_cipher == NULL) {
+            fprintf(stderr, "ERROR : calloc failed to allocate %ld bytes \n", sizeof(RedpikeKey) ) ; 
+            return 1;
+        }        
+        redpike_set_key(key_cipher , key_str ,  key_len) ; 
+        redpike_decrypt(original_text ,encrypted_text , length , key_cipher ) ;
+        return 0 ; 
         
-    // }
-    // else if (strcmp(algo , "redpike"))
-    // {
-    //     void *key_cipher = (void*) calloc(1 , sizeof(RedpikeKey)) ;
+    }
+    else if (strcmp(algo , "rc4")==0)
+    {
+        void *key_cipher = (void*) calloc(1 , sizeof(Rc4Key)) ;
+        if (key_cipher == NULL) {
+            fprintf(stderr, "ERROR : calloc failed to allocate %ld bytes \n", sizeof(Rc4Key) ) ; 
+            return 1;
+        }        
+        rc4_set_key(key_cipher , key_str ,  key_len) ; 
+        rc4_decrypt(original_text ,encrypted_text , length , key_cipher ) ;
+        return 0 ; 
         
-    //     // cprintf( YELLOW , "INFO: setting key... \n");
-    //     redpike_set_key(key_cipher , key_str ,  key_len) ; 
-    //     redpike_encrypt(original_text ,encrypted_text , length , key_cipher ) ;
-    //     return 0 ; 
+    }
+    else if (strcmp(algo , "blowfish")==0)
+    {
+        void *key_cipher = (void*) calloc(1 , sizeof(BlowfishKey)) ;
+        if (key_cipher == NULL) {
+            fprintf(stderr, "ERROR : calloc failed to allocate %ld bytes \n", sizeof(BlowfishKey) ) ; 
+            return 1;
+        }        
         
-    // }
-    // else if (strcmp(algo , "rc4"))
-    // {
-    //     void *key_cipher = (void*) calloc(1 , sizeof(Rc4Key)) ;
+        blowfish_set_key(key_cipher , key_str ,  key_len) ; 
+        blowfish_decrypt(original_text ,encrypted_text , length , key_cipher ) ;
+        return 0 ; 
         
-    //     // cprintf( YELLOW , "INFO: setting key... \n");
-    //     rc4_set_key(key_cipher , key_str ,  key_len) ; 
-    //     rc4_encrypt(original_text ,encrypted_text , length , key_cipher ) ;
-    //     return 0 ; 
-        
-    // }
-    // else if (strcmp(algo , "blowfish"))
-    // {
-    //     void *key_cipher = (void*) calloc(1 , sizeof(BlowfishKey)) ;
-        
-        
-    //     // cprintf( YELLOW , "INFO: setting key... \n");
-    //     blowfish_set_key(key_cipher , key_str ,  key_len) ; 
-    //     blowfish_encrypt(original_text ,encrypted_text , length , key_cipher ) ;
-    //     return 0 ; 
-        
-    // }
-    // else if (strcmp(algo , "affine"))
-    // {
-    //     void *key_cipher = (void*) calloc(1 , sizeof(AffineKey)) ;
-    //     // cprintf( YELLOW , "INFO: setting key... \n");
-    //     affine_set_key(key_cipher , key_str ,  key_len) ; 
-    //     affine_encrypt(original_text ,encrypted_text , length , key_cipher ) ;
-    //     return 0 ; 
+    }
+    else if (strcmp(algo , "affine")==0)
+    {
+        void *key_cipher = (void*) calloc(1 , sizeof(AffineKey)) ;
+        if (key_cipher == NULL) {
+            fprintf(stderr, "ERROR : calloc failed to allocate %ld bytes \n", sizeof(AffineKey) ) ; 
+            return 1;
+        }        
+        affine_set_key(key_cipher , key_str ,  key_len) ; 
+        affine_decrypt(original_text ,encrypted_text , length , key_cipher ) ;
+        return 0 ; 
         
         
-    // }
+    }
     
-    // else if (strcmp(algo , "hill"))
-    // {
-    //     void *key_cipher = (void*) calloc(1 , sizeof(HillKey)) ;
-    //     // cprintf( YELLOW , "INFO: setting key... \n");
-    //     hill_set_key(key_cipher , key_str ,  key_len) ; 
-    //     hill_encrypt(original_text ,encrypted_text , length , key_cipher ) ;
-    //     return 0 ; 
+    else if (strcmp(algo , "hill"))
+    {
+        void *key_cipher = (void*) calloc(1 , sizeof(HillKey)) ;
+        if (key_cipher == NULL) {
+            fprintf(stderr, "ERROR : calloc failed to allocate %ld bytes \n", sizeof(HillKey) ) ; 
+            return 1;
+        }
+        hill_set_key(key_cipher , key_str ,  key_len) ; 
+        hill_decrypt(original_text ,encrypted_text , length , key_cipher ) ;
+        return 0 ; 
 
         
-    // }
+    }
+
 
     return 1 ; 
 }

@@ -12,10 +12,10 @@ typedef struct {
 
 
 
-void affine_encrypt(const uchar_t* input, uchar_t* output , size_t length, const void* key);
-void affine_decrypt(const uchar_t* input, uchar_t* output, const void* key);
-void affine_set_key(void* key_struct, const uchar_t* key_str , size_t key_len);
-void affine_free_key(void* key_struct);
+int affine_encrypt(const uchar_t* input, uchar_t* output , size_t length, const void* key);
+int affine_decrypt(const uchar_t* input, uchar_t* output, size_t length ,  const void* key);
+int affine_set_key(void* key_struct, const uchar_t* key_str , size_t key_len);
+int affine_free_key(void* key_struct);
 
 Cipher* get_affine_cipher(void);
 
