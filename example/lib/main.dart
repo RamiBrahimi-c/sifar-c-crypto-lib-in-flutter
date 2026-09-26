@@ -424,13 +424,30 @@ class _TextTabState extends State<_TextTab> {
             ],
           ),
           const SizedBox(height: 6),
-          TextField(
-            controller: _plainCtrl,
-            maxLines: 3,
-            decoration: const InputDecoration(
-              labelText: 'Plaintext',
-              border: OutlineInputBorder(),
-            ),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: _plainCtrl,
+                  maxLines: 3,
+                  decoration: InputDecoration(
+                    labelText: 'Plaintext',
+                    border: const OutlineInputBorder(),
+                    suffixIcon: _plainCtrl.text.isEmpty
+                        ? null
+                        : IconButton(
+                            icon: const Icon(Icons.clear, size: 18),
+                            tooltip: 'Clear',
+                            onPressed: () => setState(() {
+                              _plainCtrl.clear();
+                              _status = '';
+                            }),
+                          ),
+                  ),
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 8),
           // ---- live preview box ----
