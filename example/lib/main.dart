@@ -244,6 +244,7 @@ class _TextTabState extends State<_TextTab> {
   final _plainCtrl = TextEditingController(text: 'hello world!!!!!');
   String _status = '';
   bool _busy = false;
+  bool _decryptMode = false;
 
   CipherView _view = CipherView.hex;
   PlainFormat _plainFormat = PlainFormat.text;
@@ -274,7 +275,13 @@ class _TextTabState extends State<_TextTab> {
     padded.fillRange(data.length, padded.length, padLen);
     return padded;
   }
-
+  void _setDecryptMode(bool value) {
+    setState(() {
+      _decryptMode = value;
+      _plainCtrl.clear();
+      _status = '';
+    });
+  }
   Uint8List? _parsePlain() {
     if (_plainFormat == PlainFormat.text) {
       return Uint8List.fromList(utf8.encode(_plainCtrl.text));
@@ -293,44 +300,49 @@ class _TextTabState extends State<_TextTab> {
       final key = widget.requireKey();
       final raw = _parsePlain();
       if (raw == null) throw ArgumentError('Invalid hex input');
+
       final plain = _pad(raw, blockSize);
 
       final cipher = SifarCipher(widget.cipher, key);
-      final enc = cipher.encrypt(plain);
+      final result = _decryptMode
+          ? cipher.decrypt(plain)
+          : cipher.encrypt(plain);
       cipher.dispose();
-      return enc;
+
+      // Same strip as _run():
+      if (_decryptMode && result.length >= raw.length) {
+        return result.sublist(0, raw.length);
+      }
+      return result;
     } catch (_) {
       return null;
     }
   }
+
 
   String _renderCipher(Uint8List? bytes) {
-    if (bytes == null) return '(type plaintext to see live ciphertext)';
-    if (_view == CipherView.hex) return _bytesToHex(bytes);
-    return String.fromCharCodes(bytes);  // Latin-1
-  }
-
-  /// Live preview — silently returns null if anything's off.
-  String? _liveCipherHex() {
-    if (_plainCtrl.text.isEmpty) return null;
-    if (_plainCtrl.text.length > 256) return '(too long for live preview)';
-
-    try {
-      final blockSize = blockSizeOf(widget.cipher);
-      if (blockSize <= 0) return null;
-
-      final key = widget.requireKey();
-      final raw = Uint8List.fromList(utf8.encode(_plainCtrl.text));
-      final plain = _pad(raw, blockSize);
-
-      final cipher = SifarCipher(widget.cipher, key);
-      final enc = cipher.encrypt(plain);
-      cipher.dispose();
-      return _bytesToHex(enc);
-    } catch (_) {
-      return null;
+    if (bytes == null) {
+      return _decryptMode
+        ? '(type ciphertext to see live plaintext)'
+        : '(type plaintext to see live ciphertext)';
     }
+
+    if (_decryptMode) {
+      return utf8.decode(bytes, allowMalformed: true);
+    }
+
+    if (_view == CipherView.hex) return _bytesToHex(bytes);
+    return String.fromCharCodes(bytes);
   }
+
+  void _setPlainFormat(PlainFormat value) {
+    setState(() {
+      _plainFormat = value;
+      _plainCtrl.clear();
+      _status = '';
+    });
+  }
+
 
   void _run() {
     setState(() {
@@ -344,34 +356,39 @@ class _TextTabState extends State<_TextTab> {
       final key = widget.requireKey();
       final raw = _parsePlain();
       if (raw == null) throw ArgumentError('Invalid hex input');
+
       final plain = _pad(raw, blockSize);
 
       final cipher = SifarCipher(widget.cipher, key);
-      final enc = cipher.encrypt(plain);
-      final dec = cipher.decrypt(enc);
+      final result = _decryptMode
+          ? cipher.decrypt(plain)
+          : cipher.encrypt(plain);
       cipher.dispose();
 
-      setState(() {
-        _busy = false;
-        _status = 'CIPHER (${widget.cipher.toUpperCase()}):\n'
-            '${_bytesToHex(enc)}\n\n'
-            'DECRYPTED:\n${utf8.decode(dec.sublist(0, raw.length), allowMalformed: true)}';
-      });
+      // For encrypt mode, show ciphertext hex. For decrypt mode, show plaintext.
+      if (_decryptMode) {
+        // strip padding, show as text (hex-stripping is approximate here)
+        final stripped = result.length >= raw.length
+            ? result.sublist(0, raw.length)
+            : result;
+        setState(() {
+          _busy = false;
+          _status = 'PLAINTEXT:\n'
+              '${utf8.decode(stripped, allowMalformed: true)}';
+        });
+      } else {
+        setState(() {
+          _busy = false;
+          _status = 'CIPHER (${widget.cipher.toUpperCase()}):\n'
+              '${_bytesToHex(result)}';
+        });
+      }
     } catch (e) {
       setState(() {
         _busy = false;
         _status = 'ERROR: $e';
       });
     }
-  }
-
-  String? _extractCipherFromStatus() {
-    final marker = 'CIPHER (${widget.cipher.toUpperCase()}):\n';
-    if (!_status.startsWith(marker)) return null;
-    final rest = _status.substring(marker.length);
-    final split = rest.indexOf('\n\n');
-    if (split < 0) return null;
-    return rest.substring(0, split);
   }
 
 
@@ -383,6 +400,14 @@ class _TextTabState extends State<_TextTab> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          SegmentedButton<bool>(
+            segments: const [
+              ButtonSegment(value: false, label: Text('Encrypt')),
+              ButtonSegment(value: true,  label: Text('Decrypt')),
+            ],
+            selected: {_decryptMode},
+            onSelectionChanged: (s) => _setDecryptMode(s.first),
+          ),
           Row(
             children: [
               const Text('Plaintext format:', style: TextStyle(fontSize: 12)),
@@ -393,7 +418,7 @@ class _TextTabState extends State<_TextTab> {
                   ButtonSegment(value: PlainFormat.hex, label: Text('Hex')),
                 ],
                 selected: {_plainFormat},
-                onSelectionChanged: (s) => setState(() => _plainFormat = s.first),
+                onSelectionChanged: (s) => _setPlainFormat(s.first),
                 style: const ButtonStyle(visualDensity: VisualDensity.compact),
               ),
             ],
@@ -488,10 +513,9 @@ class _TextTabState extends State<_TextTab> {
                       icon: const Icon(Icons.copy, size: 18),
                       tooltip: 'Copy ciphertext',
                       onPressed: () {
-                        final text = _extractCipherFromStatus() ?? _status;
-                        Clipboard.setData(ClipboardData(text: text));
+                        Clipboard.setData(ClipboardData(text: _status));
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Ciphertext copied')),
+                          const SnackBar(content: Text('Copied')),
                         );
                       },
                     ),
@@ -505,7 +529,7 @@ class _TextTabState extends State<_TextTab> {
             style: FilledButton.styleFrom(
               padding: const EdgeInsets.symmetric(vertical: 16),
             ),
-            child: const Text('Encrypt Text'),
+            child: Text(_decryptMode ? 'Decrypt Text' : 'Encrypt Text'),
           ),
         ],
       ),

@@ -1,0 +1,1 @@
+- Settings screen: toggle live typing preview on/off
