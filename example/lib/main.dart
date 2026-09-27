@@ -162,6 +162,18 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                               width: 2,
                             ),
                           ),
+                          suffixIcon: _keyCtrl.text.isEmpty
+                            ? null
+                            : IconButton(
+                                icon: const Icon(Icons.copy, size: 18),
+                                tooltip: 'Copy key',
+                                onPressed: () {
+                                  Clipboard.setData(ClipboardData(text: _keyCtrl.text));
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(content: Text('Key copied')),
+                                  );
+                                },
+                              ),
                         ),
                       ),
                     ),

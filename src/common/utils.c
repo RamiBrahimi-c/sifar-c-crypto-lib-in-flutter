@@ -12,6 +12,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 #include <ctype.h>
 
 // Function to calculate the GCD using the Euclidean algorithm (iterative)
@@ -97,7 +98,7 @@ void multiplyMatrix(uchar_t matrix1[][MATRIX_MAX_DEGREE] , int n , int m , uchar
 
 
 void setRandomInversibleMatrix(uchar_t  matrix[][MATRIX_MAX_DEGREE],int lines , int cols) {
-
+    srand(time(NULL)) ; 
 
     for (int i = 0; i < lines; i++)
     {

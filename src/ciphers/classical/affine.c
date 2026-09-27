@@ -55,7 +55,14 @@ int affine_set_key(void* key_struct, const uchar_t* key_str , size_t key_len) {
         return 1 ; 
     }
     uint64_t key_num = atoi(key_str) ; 
-    
+    if ( key_num == 0 ) {
+        fprintf(stderr , "ERROR : atoi failed\n") ; 
+        return 2 ; 
+    }
+    if ( isCoprime(key_num , ALPHABET_LENGTH) == 0) {
+        fprintf(stderr , "ERROR : key must be coprime with alphabet number\n") ; 
+        return 3 ; 
+    }
     assert(key_num>0 && isCoprime(key_num , ALPHABET_LENGTH) == 1 && "key must be coprime with alphabet number ");
 
     affineKey->a = key_num; 
