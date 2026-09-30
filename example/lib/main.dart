@@ -43,16 +43,27 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   void initState() {
     super.initState();
     _tabs = TabController(length: 3, vsync: this);
-    _keyCtrl.addListener(_onKeyChanged);   
+    _tabs.addListener(_onTabChanged);
+    _keyCtrl.addListener(_onKeyChanged);
   }
 
   @override
   void dispose() {
+    _tabs.removeListener(_onTabChanged);
     _keyCtrl.removeListener(_onKeyChanged);
     _tabs.dispose();
     _keyCtrl.dispose();
     super.dispose();
   }
+  int _lastTab = 0;
+
+  void _onTabChanged() {
+    if (_tabs.index != _lastTab) {
+      _lastTab = _tabs.index;
+      setState(() {});
+    }
+  }
+  bool get _showCipherControls => _tabs.index != 2;  // 0=Text, 1=Image, 2=Hash
 
   void _onKeyChanged() => setState(() {});  // rebuild to re-evaluate
 
@@ -133,7 +144,8 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       body: Column(
         children: [
           // Shared controls: key + cipher selection
-                    Padding(
+          if (_showCipherControls)
+          Padding(
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
             child: Column(
               children: [
@@ -269,6 +281,7 @@ class _TextTabState extends State<_TextTab> {
   void initState() {
     super.initState();
     _plainCtrl.addListener(_onChanged);
+    _cachedLive = _liveCipherBytes();
   }
 
   @override
@@ -278,8 +291,16 @@ class _TextTabState extends State<_TextTab> {
     super.dispose();
   }
 
-  void _onChanged() => setState(() {});
+  Uint8List? _cachedLive;
+  String _lastText = '';
 
+  void _onChanged() {
+    if (_plainCtrl.text == _lastText) return;
+    _lastText = _plainCtrl.text;
+    setState(() {
+      _cachedLive = _liveCipherBytes();
+    });
+  }
   String _bytesToHex(Uint8List b) =>
       b.map((x) => x.toRadixString(16).padLeft(2, '0')).join();
 
@@ -495,12 +516,12 @@ class _TextTabState extends State<_TextTab> {
                       borderRadius: BorderRadius.circular(6),
                     ),
                     child: SelectableText(
-                      _renderCipher(_liveCipherBytes()),
+                      _renderCipher(_cachedLive),
                       style: const TextStyle(fontFamily: 'monospace', fontSize: 11),
                       maxLines: 3,
                     ),
                   ),
-                  if (_liveCipherBytes() != null)
+                  if (_cachedLive != null)
                     Positioned(
                       top: 0,
                       right: 0,
@@ -508,7 +529,7 @@ class _TextTabState extends State<_TextTab> {
                         icon: const Icon(Icons.copy, size: 16),
                         tooltip: 'Copy ciphertext',
                         onPressed: () {
-                          final text = _renderCipher(_liveCipherBytes());
+                          final text = _renderCipher(_cachedLive);
                           Clipboard.setData(ClipboardData(text: text));
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(content: Text('Ciphertext copied')),
@@ -796,6 +817,13 @@ class _HashTabState extends State<_HashTab> {
   HashView _view = HashView.hex;
   String _status = '';
 
+
+  Uint8List? _cachedHash;
+
+  void _onChanged() => setState(() {
+    _cachedHash = _liveHash();
+  });
+
   @override
   void initState() {
     super.initState();
@@ -809,7 +837,7 @@ class _HashTabState extends State<_HashTab> {
     super.dispose();
   }
 
-  void _onChanged() => setState(() {});
+  // void _onChanged() => setState(() {});
 
   Uint8List? _parseInput() {
     if (_inputCtrl.text.isEmpty) return null;
@@ -849,7 +877,7 @@ class _HashTabState extends State<_HashTab> {
 
   @override
   Widget build(BuildContext context) {
-    final live = _liveHash();
+    final live = _cachedHash;
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
