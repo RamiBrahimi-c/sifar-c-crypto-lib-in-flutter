@@ -128,55 +128,70 @@ static uint64_t shr_64bit(uint64_t a , uint64_t times) {
 // }
 
 
-static void Ch_sha256(uchar_t *x , uchar_t *y , uchar_t *z , uchar_t *result) {
+// static void Ch_sha256(uchar_t *x , uchar_t *y , uchar_t *z , uchar_t *result) {
 
-    uchar_t temp1[4] ;
-    for (int i = 0; i < 4; i++)
-    {
-        temp1[i] = x[i] & y[i] ;
-    }
+//     uchar_t temp1[4] ;
+//     for (int i = 0; i < 4; i++)
+//     {
+//         temp1[i] = x[i] & y[i] ;
+//     }
 
-    uchar_t temp2[4] ;
-    for (int i = 0; i < 4; i++)
-    {
-        temp2[i] = (~x[i]) & z[i] ;
-    }
+//     uchar_t temp2[4] ;
+//     for (int i = 0; i < 4; i++)
+//     {
+//         // temp2[i] = (~x[i]) & z[i] ;
+//         // temp2[i] = (~x[i]) & z[i] ;
+//         temp2[i] = ~(uchar_t)(x[i]) & z[i];
+//     }
 
-    for (int i = 0; i < 4; i++)
-    {
-        result[i] = temp1[i] ^ temp2[i] ;
-    }
+//     for (int i = 0; i < 4; i++)
+//     {
+//         result[i] = temp1[i] ^ temp2[i] ;
+//     }
+
+// }
+
+
+// static void Maj_sha256(uchar_t *x , uchar_t *y , uchar_t *z , uchar_t *result) {
+
+//     uchar_t temp1[4] ;
+//     for (int i = 0; i < 4; i++)
+//     {
+//         temp1[i] = x[i] & y[i] ;
+//     }
+
+//     uchar_t temp2[4] ;
+//     for (int i = 0; i < 4; i++)
+//     {
+//         temp2[i] = x[i] & z[i] ;
+//     }
+    
+//     uchar_t temp3[4] ;
+
+//     for (int i = 0; i < 4; i++)
+//     {
+//         temp3[i] = y[i] & z[i] ;
+//     }
+
+
+//     for (int i = 0; i < 4; i++)
+//     {
+//         result[i] = temp1[i] ^ temp2[i] ^ temp3[i] ;
+//     }
+
+
+// }
+
+
+
+
+static uint32_t Ch_sha256(uint32_t x , uint32_t y , uint32_t z ) {
+    return (x & y) ^ (~x & z) ; 
 
 }
 
-
-static void Maj_sha256(uchar_t *x , uchar_t *y , uchar_t *z , uchar_t *result) {
-
-    uchar_t temp1[4] ;
-    for (int i = 0; i < 4; i++)
-    {
-        temp1[i] = x[i] & y[i] ;
-    }
-
-    uchar_t temp2[4] ;
-    for (int i = 0; i < 4; i++)
-    {
-        temp2[i] = x[i] & z[i] ;
-    }
-    
-    uchar_t temp3[4] ;
-
-    for (int i = 0; i < 4; i++)
-    {
-        temp3[i] = y[i] & z[i] ;
-    }
-
-
-    for (int i = 0; i < 4; i++)
-    {
-        result[i] = temp1[i] ^ temp2[i] ^ temp3[i] ;
-    }
-
+static uint32_t Maj_sha256(uint32_t x , uint32_t y , uint32_t z ) {
+    return (x & y) ^ (x & z) ^ (y & z) ; 
 
 }
 
@@ -325,12 +340,58 @@ uchar_t* sha256_padding(const uchar_t M[] , uint64_t b , uint64_t *output_length
 
 void sha256_hash(const uchar_t* data, size_t len, uchar_t digest[32]) {
     
-    uchar_t H[8*4] ; 
+    // uint32_t H[8] ; 
     uchar_t W[64*4] ; 
-    uchar_t K[64*4] ; 
+    // uint32_t K[64] ; 
+    
+    uint32_t H_temp[8] ; 
+    uint32_t K_temp[64] ; 
+    
+    uint32_t H[8] = {
+        0x6a09e667 ,
+        0xbb67ae85 ,
+        0x3c6ef372 ,
+        0xa54ff53a ,
+        0x510e527f ,
+        0x9b05688c ,
+        0x1f83d9ab ,
+        0x5be0cd19 
+    } ; 
+    uint32_t K[64] = {
+        0x428a2f98 , 0x71374491 , 0xb5c0fbcf , 0xe9b5dba5 , 0x3956c25b , 0x59f111f1 , 0x923f82a4 , 0xab1c5ed5 ,
+        0xd807aa98 , 0x12835b01 , 0x243185be , 0x550c7dc3 , 0x72be5d74 , 0x80deb1fe , 0x9bdc06a7 , 0xc19bf174 ,
+        0xe49b69c1 , 0xefbe4786 , 0x0fc19dc6 , 0x240ca1cc , 0x2de92c6f , 0x4a7484aa , 0x5cb0a9dc , 0x76f988da ,
+        0x983e5152 , 0xa831c66d , 0xb00327c8 , 0xbf597fc7 , 0xc6e00bf3 , 0xd5a79147 , 0x06ca6351 , 0x14292967 ,
+        0x27b70a85 , 0x2e1b2138 , 0x4d2c6dfc , 0x53380d13 , 0x650a7354 , 0x766a0abb , 0x81c2c92e , 0x92722c85 ,
+        0xa2bfe8a1 , 0xa81a664b , 0xc24b8b70 , 0xc76c51a3 , 0xd192e819 , 0xd6990624 , 0xf40e3585 , 0x106aa070 ,
+        0x19a4c116 , 0x1e376c08 , 0x2748774c , 0x34b0bcb5 , 0x391c0cb3 , 0x4ed8aa4a , 0x5b9cca4f , 0x682e6ff3 ,
+        0x748f82ee , 0x78a5636f , 0x84c87814 , 0x8cc70208 , 0x90befffa , 0xa4506ceb , 0xbef9a3f7 , 0xc67178f2 
+    } ;
 
-    init_K(K) ;
-    init_Hash_Values(H) ;
+    // const uint32_t PRIMES_64[64] = {
+    //     2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 
+    //     31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 
+    //     73, 79, 83, 89, 97, 101, 103, 107, 109, 113, 
+    //     127, 131, 137, 139, 149, 151, 157, 163, 167, 173, 
+    //     179, 181, 191, 193, 197, 199, 211, 223, 227, 229, 
+    //     233, 239, 241, 251, 257, 263, 269, 271, 277, 281, 
+    //     283, 293, 307, 311
+    // };
+
+    // long double k ;  
+    // int j = 0 ; 
+    // for (int i = 0; i < 64; i++)
+    // {
+    //     K_temp[i] = (uint32_t) (cbrt(PRIMES_64[i]) * 4294967296) ;
+    // }
+    
+    // for (int i = 0; i < 8; i++)
+    // {
+    //     H_temp[i] = (uint32_t) (cbrt(PRIMES_64[i]) * 4294967296) ;
+    // }
+    
+    // memcpy(K , K_temp , sizeof(uint32_t) * 64) ;
+    // memcpy(H , H_temp , sizeof(uint32_t) * 8) ;
 
 
     uint64_t output_length  ; 
@@ -349,7 +410,7 @@ void sha256_hash(const uchar_t* data, size_t len, uchar_t digest[32]) {
         {
             // FIX : man i wouldnt messed it up if i did it in go or sum the first time ..
             // the input_padded bloc must get updated aka in this case multiplied by (i* 16 * 4)
-            memcpy(W + (t*4)  , input_padded + (t*4 ) + (i * 16*4)  , sizeof(uchar_t ) * 4 * 1) ; 
+            memcpy(W + (t*4)  , input_padded + (t*4 ) + (i * 16*4)  , sizeof(uint32_t ) ) ; 
         }
         for (size_t t = 16; t < 64; t++)
         {
@@ -357,41 +418,26 @@ void sha256_hash(const uchar_t* data, size_t len, uchar_t digest[32]) {
             be_to_bytes(result , W + t*4 ) ;
         }
         
-        a = bytes_to_be(H + 0*4) ; 
-        b = bytes_to_be(H + 1*4) ; 
-        c = bytes_to_be(H + 2*4) ; 
-        d = bytes_to_be(H + 3*4) ; 
-        e = bytes_to_be(H + 4*4) ; 
-        f = bytes_to_be(H + 5*4) ; 
-        g = bytes_to_be(H + 6*4) ; 
-        h = bytes_to_be(H + 7*4) ; 
+        a = H[0] ; 
+        b = H[1] ; 
+        c = H[2] ; 
+        d = H[3] ; 
+        e = H[4] ; 
+        f = H[5] ; 
+        g = H[6] ; 
+        h = H[7] ; 
+              
         
-        
-        
+        uint32_t T1 , T2 ; 
         for (size_t t = 0; t < 64; t++)
         {
 
-            uchar_t a_bytes[4] ;
-            uchar_t b_bytes[4] ;
-            uchar_t c_bytes[4] ;
-            uchar_t e_bytes[4] ;
-            uchar_t f_bytes[4] ;
-            uchar_t g_bytes[4] ;
-            uchar_t result[4] ;
-            be_to_bytes(e , e_bytes) ; 
-            be_to_bytes(f , f_bytes) ; 
-            be_to_bytes(g , g_bytes) ; 
             
-            Ch_sha256(e_bytes , f_bytes , g_bytes , result) ;
             
-            uint32_t T1 = h + Sum1_256_sha256(e) + bytes_to_be(result) + bytes_to_be(K + t*4) + bytes_to_be(W + t*4)   ;  
+            T1 = (uint32_t) (h + Sum1_256_sha256(e) + Ch_sha256(e , f , g ) + K [t] + bytes_to_be(W + t*4))   ;  
             
-            be_to_bytes(a , a_bytes) ; 
-            be_to_bytes(b , b_bytes) ; 
-            be_to_bytes(c , c_bytes) ; 
             
-            Maj_sha256(a_bytes , b_bytes , c_bytes , result) ; 
-            uint32_t T2 =  Sum0_256_sha256(a) + bytes_to_be(result)    ;  
+            T2 = (uint32_t)  (Sum0_256_sha256(a) + Maj_sha256(a , b , c ))    ;  
             
             h = g ;
             
@@ -411,20 +457,35 @@ void sha256_hash(const uchar_t* data, size_t len, uchar_t digest[32]) {
 
         }
 
-        be_to_bytes( a  +  bytes_to_be(H + 0*4)  ,H + 0*4 ) ; 
-        be_to_bytes( b  +  bytes_to_be(H + 1*4)  ,H + 1*4 ) ; 
-        be_to_bytes( c  +  bytes_to_be(H + 2*4)  ,H + 2*4 ) ; 
-        be_to_bytes( d  +  bytes_to_be(H + 3*4)  ,H + 3*4 ) ; 
-        be_to_bytes( e  +  bytes_to_be(H + 4*4)  ,H + 4*4 ) ; 
-        be_to_bytes( f  +  bytes_to_be(H + 5*4)  ,H + 5*4 ) ; 
-        be_to_bytes( g  +  bytes_to_be(H + 6*4)  ,H + 6*4 ) ; 
-        be_to_bytes( h  +  bytes_to_be(H + 7*4)  ,H + 7*4 ) ; 
+        H[0] =  a  + H[0] ; 
+        H[1] =  b  + H[1] ; 
+        H[2] =  c  + H[2] ; 
+        H[3] =  d  + H[3] ; 
+        H[4] =  e  + H[4] ; 
+        H[5] =  f  + H[5] ; 
+        H[6] =  g  + H[6] ; 
+        H[7] =  h  + H[7] ; 
+
         
     }
-    memcpy(digest , H , sizeof(uchar_t)*8*4) ; 
-
+    for ( int z = 0 ; z < 8 ; z++ ) {
+        printf("%u \n" , H[z]) ; 
+    }
+    
+    
+    be_to_bytes( H[0] , digest + 0 * 4 ) ; 
+    be_to_bytes( H[1] , digest + 1 * 4 ) ; 
+    be_to_bytes( H[2] , digest + 2 * 4 ) ; 
+    be_to_bytes( H[3] , digest + 3 * 4 ) ; 
+    be_to_bytes( H[4] , digest + 4 * 4 ) ; 
+    be_to_bytes( H[5] , digest + 5 * 4 ) ; 
+    be_to_bytes( H[6] , digest + 6 * 4 ) ; 
+    be_to_bytes( H[7] , digest + 7 * 4 ) ; 
+    
+    // memcpy(digest , H , sizeof(uint32_t)*8) ; 
     free(input_padded) ; 
 }
+
 
 
 

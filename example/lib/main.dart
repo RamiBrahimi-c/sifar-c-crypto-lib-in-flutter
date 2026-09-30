@@ -42,7 +42,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   @override
   void initState() {
     super.initState();
-    _tabs = TabController(length: 2, vsync: this);
+    _tabs = TabController(length: 3, vsync: this);
     _keyCtrl.addListener(_onKeyChanged);   
   }
 
@@ -127,7 +127,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
         title: const Text('Sifar'),
         bottom: TabBar(
           controller: _tabs,
-          tabs: const [Tab(text: 'Text'), Tab(text: 'Image')],
+          tabs: const [Tab(text: 'Text'), Tab(text: 'Image'), Tab(text: 'Hash')],
         ),
       ),
       body: Column(
@@ -220,6 +220,9 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                 _ImageTab(
                   cipher: _cipher,
                   requireKey: _requireKey,
+                ),
+                _HashTab(
+
                 ),
               ],
             ),
@@ -770,3 +773,206 @@ class _ImageTabState extends State<_ImageTab> {
     );
   }
 }
+
+
+
+// ============================================================
+// HASH TAB
+// ============================================================
+class _HashTab extends StatefulWidget {
+  const _HashTab();
+
+  @override
+  State<_HashTab> createState() => _HashTabState();
+}
+
+enum HashFormat { text, hex }
+enum HashView { hex, base64 }
+
+class _HashTabState extends State<_HashTab> {
+  final _inputCtrl = TextEditingController();
+  String _hash = 'sha256';
+  HashFormat _format = HashFormat.text;
+  HashView _view = HashView.hex;
+  String _status = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _inputCtrl.addListener(_onChanged);
+  }
+
+  @override
+  void dispose() {
+    _inputCtrl.removeListener(_onChanged);
+    _inputCtrl.dispose();
+    super.dispose();
+  }
+
+  void _onChanged() => setState(() {});
+
+  Uint8List? _parseInput() {
+    if (_inputCtrl.text.isEmpty) return null;
+    if (_format == HashFormat.text) {
+      return Uint8List.fromList(utf8.encode(_inputCtrl.text));
+    }
+    // hex
+    final hex = _inputCtrl.text.replaceAll(RegExp(r'\s'), '');
+    if (hex.length.isOdd) return null;
+    try {
+      return Uint8List.fromList(List.generate(
+        hex.length ~/ 2,
+        (i) => int.parse(hex.substring(i * 2, i * 2 + 2), radix: 16),
+      ));
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Uint8List? _liveHash() {
+    final input = _parseInput();
+    if (input == null) return null;
+    try {
+      return SifarHash.hash(_hash, input);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  String _renderHash(Uint8List? bytes) {
+    if (bytes == null) return '(type input to see hash)';
+    if (_view == HashView.hex) {
+      return bytes.map((x) => x.toRadixString(16).padLeft(2, '0')).join();
+    }
+    return base64.encode(bytes);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final live = _liveHash();
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              const Text('Input format: ', style: TextStyle(fontSize: 12)),
+              const SizedBox(width: 8),
+              SegmentedButton<HashFormat>(
+                segments: const [
+                  ButtonSegment(value: HashFormat.text, label: Text('Text')),
+                  ButtonSegment(value: HashFormat.hex,  label: Text('Hex')),
+                ],
+                selected: {_format},
+                onSelectionChanged: (s) => setState(() {
+                  _format = s.first;
+                  _inputCtrl.clear();
+                  _status = '';
+                }),
+                style: const ButtonStyle(visualDensity: VisualDensity.compact),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              const Text('Hash: '),
+              const SizedBox(width: 8),
+              Expanded(
+                child: DropdownButton<String>(
+                  isExpanded: true,
+                  value: _hash,
+                  onChanged: (v) => setState(() => _hash = v!),
+                  items: SifarHash.names
+                      .map((h) => DropdownMenuItem(
+                            value: h,
+                            child: Text(h.toUpperCase()),
+                          ))
+                      .toList(),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          TextField(
+            controller: _inputCtrl,
+            maxLines: 3,
+            decoration: InputDecoration(
+              labelText: 'Input',
+              border: const OutlineInputBorder(),
+              suffixIcon: _inputCtrl.text.isEmpty
+                  ? null
+                  : IconButton(
+                      icon: const Icon(Icons.clear, size: 18),
+                      tooltip: 'Clear',
+                      onPressed: () => setState(() {
+                        _inputCtrl.clear();
+                        _status = '';
+                      }),
+                    ),
+            ),
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              const Text('Output view: ', style: TextStyle(fontSize: 12)),
+              const SizedBox(width: 8),
+              SegmentedButton<HashView>(
+                segments: const [
+                  ButtonSegment(value: HashView.hex,    label: Text('Hex')),
+                  ButtonSegment(value: HashView.base64, label: Text('Base64')),
+                ],
+                selected: {_view},
+                onSelectionChanged: (s) => setState(() => _view = s.first),
+                style: const ButtonStyle(visualDensity: VisualDensity.compact),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Expanded(
+            child: Stack(
+              children: [
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: SingleChildScrollView(
+                    child: SelectableText(
+                      _renderHash(live),
+                      style: const TextStyle(fontFamily: 'monospace', fontSize: 13),
+                    ),
+                  ),
+                ),
+                if (live != null)
+                  Positioned(
+                    top: 4,
+                    right: 4,
+                    child: IconButton(
+                      icon: const Icon(Icons.copy, size: 18),
+                      tooltip: 'Copy hash',
+                      onPressed: () {
+                        Clipboard.setData(ClipboardData(text: _renderHash(live)));
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Hash copied')),
+                        );
+                      },
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+
+
+
+

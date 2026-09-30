@@ -9,6 +9,7 @@
 #include "ciphers/symmetric/xtea.h"
 #include "ciphers/classical/affine.h"
 #include "ciphers/classical/hill.h"
+#include "ciphers/hashing/hash.h"
 #include <stdlib.h>
 #include <string.h>
 
@@ -516,3 +517,16 @@ int get_key_size(const char* cipher_name) {
     if (strcmp(cipher_name, "redpike") == 0)  return 8; // matches redpike_set_key
     return 0;
 }
+
+
+
+int get_digest_size(const char* hash_name) {
+    if (!hash_name) return 0;
+    if (strcmp(hash_name, "md4")    == 0) return 16;
+    if (strcmp(hash_name, "md5")    == 0) return 16;
+    if (strcmp(hash_name, "sha256") == 0) return 32;
+    if (strcmp(hash_name, "sha512") == 0) return 64;
+    return 0;
+}
+
+

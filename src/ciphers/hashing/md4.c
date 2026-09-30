@@ -1,5 +1,5 @@
-#include "../../../include/ciphers/hashing/hash.h"
-#include "../../../include/ciphers/hashing/hash_padding.h"
+#include "hash.h"
+#include "hash_padding.h"
 
 /*
     the manuel : https://datatracker.ietf.org/doc/html/rfc1186#autoid-4

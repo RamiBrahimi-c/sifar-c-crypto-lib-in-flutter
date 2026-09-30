@@ -462,6 +462,46 @@ external int get_block_size(ffi.Pointer<ffi.Char> cipher_name);
 @ffi.Native<ffi.Int Function(ffi.Pointer<ffi.Char>)>()
 external int get_key_size(ffi.Pointer<ffi.Char> cipher_name);
 
+/// Hashing
+@ffi.Native<ffi.Int Function(ffi.Pointer<ffi.Char>)>()
+external int get_digest_size(ffi.Pointer<ffi.Char> hash_name);
+
+@ffi.Native<
+  ffi.Void Function(ffi.Pointer<uchar_t>, ffi.Int, ffi.Pointer<uchar_t>)
+>()
+external void md4_hash(
+  ffi.Pointer<uchar_t> M,
+  int N,
+  ffi.Pointer<uchar_t> output,
+);
+
+@ffi.Native<
+  ffi.Void Function(ffi.Pointer<uchar_t>, ffi.Int, ffi.Pointer<uchar_t>)
+>()
+external void md5_hash(
+  ffi.Pointer<uchar_t> M,
+  int N,
+  ffi.Pointer<uchar_t> output,
+);
+
+@ffi.Native<
+  ffi.Void Function(ffi.Pointer<uchar_t>, ffi.Size, ffi.Pointer<uchar_t>)
+>()
+external void sha256_hash(
+  ffi.Pointer<uchar_t> data,
+  int len,
+  ffi.Pointer<uchar_t> digest,
+);
+
+@ffi.Native<
+  ffi.Void Function(ffi.Pointer<uchar_t>, ffi.Size, ffi.Pointer<uchar_t>)
+>()
+external void sha512_hash(
+  ffi.Pointer<uchar_t> data,
+  int len,
+  ffi.Pointer<uchar_t> digest,
+);
+
 /// Opaque handles — Dart only ever sees pointers to these
 /// typedef struct AesKey AesKey;
 /// typedef struct DesKey DesKey;

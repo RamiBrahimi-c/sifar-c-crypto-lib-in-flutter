@@ -105,4 +105,18 @@ int get_block_size(const char* cipher_name);  // returns 0 if unknown
 int get_key_size(const char* cipher_name) ;
 
 
+
+// hashing stuff 
+
+// Hashing
+int get_digest_size(const char* hash_name);
+
+void md4_hash(uchar_t M[], int N, uchar_t* output);
+void md5_hash(uchar_t M[], int N, uchar_t* output);
+void sha256_hash(const uchar_t* data, size_t len, uchar_t digest[32]);
+void sha512_hash(const uchar_t* data, size_t len, uchar_t digest[64]);
+
+
+
+
 #endif

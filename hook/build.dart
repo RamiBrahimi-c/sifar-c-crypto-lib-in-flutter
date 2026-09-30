@@ -33,6 +33,10 @@ void main(List<String> args) async {
         'src/ciphers/symmetric/reseau_fistel.c',
         'src/ciphers/symmetric/tea.c',
         'src/ciphers/symmetric/xtea.c',
+        'src/ciphers/hashing/hash.c',
+        'src/ciphers/hashing/md4.c',
+        'src/ciphers/hashing/md5.c',
+        'src/ciphers/hashing/sha.c',
       ],
       includes: [
         'src',
@@ -40,8 +44,9 @@ void main(List<String> args) async {
         'src/ciphers',
         'src/ciphers/symmetric',
         'src/ciphers/classical',
+        'src/ciphers/hashing',
       ],
-      flags: ['-lm'],
+      flags: ['-lm' ],
     );
 
     await cbuilder.run(

@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:ffi';
 import 'dart:typed_data';
 import 'package:ffi/ffi.dart';
@@ -28,6 +29,59 @@ int keySizeOf(String cipher) {
     malloc.free(ptr);
   }
 }
+
+
+int digestSizeOf(String hash) {
+  final ptr = hash.toNativeUtf8();
+  try {
+    return sifar.get_digest_size(ptr.cast<ffi.Char>());
+  } finally {
+    malloc.free(ptr);
+  }
+}
+
+class SifarHash {
+  static const List<String> names = ['md4', 'md5', 'sha256', 'sha512'];
+
+  /// Returns the raw digest bytes of [input] using [name].
+  static Uint8List hash(String name, Uint8List input) {
+    final size = digestSizeOf(name);
+    if (size <= 0) throw ArgumentError('Unknown hash: $name');
+
+    final inPtr  = calloc<Uint8>(input.isEmpty ? 1 : input.length);
+    final outPtr = calloc<Uint8>(size);
+
+    try {
+      if (input.isNotEmpty) {
+        inPtr.asTypedList(input.length).setAll(0, input);
+      }
+
+      switch (name) {
+        case 'md4':
+          sifar.md4_hash(inPtr.cast(), input.length, outPtr.cast());
+          break;
+        case 'md5':
+          sifar.md5_hash(inPtr.cast(), input.length, outPtr.cast());
+          break;
+        case 'sha256':
+          sifar.sha256_hash(inPtr.cast(), input.length, outPtr.cast());
+          break;
+        case 'sha512':
+          sifar.sha512_hash(inPtr.cast(), input.length, outPtr.cast());
+          break;
+      }
+
+      return Uint8List.fromList(outPtr.asTypedList(size));
+    } finally {
+      calloc.free(inPtr);
+      calloc.free(outPtr);
+    }
+  }
+}
+
+/// Convert bytes to base64 string.
+String bytesToBase64(Uint8List bytes) => base64.encode(bytes);
+
 
 class SifarCipher {
   final String name;
