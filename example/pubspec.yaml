@@ -45,6 +45,8 @@ dependencies:
   ffi: ^2.2.0
   path_provider: ^2.1.6
   image_picker: ^1.2.3
+  url_launcher: ^6.3.3
+  gal: ^2.3.3
 
 dev_dependencies:
   flutter_test:

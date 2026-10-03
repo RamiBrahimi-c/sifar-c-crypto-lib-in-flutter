@@ -7,6 +7,9 @@ import 'package:path_provider/path_provider.dart';
 import 'package:my_native_wrapper/sifar.dart';
 import 'dart:math';
 import 'package:flutter/services.dart';
+import 'about_page.dart';
+import 'package:gal/gal.dart';
+
 
 void main() => runApp(const MyApp());
 
@@ -320,6 +323,15 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     return Scaffold(
       appBar: AppBar(
         title: const Text('Sifar'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.info_outline),
+            tooltip: 'About',
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const AboutPage()),
+            ),
+          ),
+        ],
         bottom: TabBar(
           controller: _tabs,
           tabs: const [Tab(text: 'Text'), Tab(text: 'Image'), Tab(text: 'Hash')],
@@ -845,6 +857,24 @@ class _ImageTabState extends State<_ImageTab> {
     }
   }
 
+  Future<void> _saveToGallery(String path, String label) async {
+    try {
+      // need a File reference — save from the sandbox path
+      await Gal.putImage(path, album: 'Sifar');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('$label saved to gallery')),
+        );
+      }
+    } on GalException catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Save failed: ${e.type.message}')),
+        );
+      }
+    }
+  }
+
   Widget _panel() {
     if (_encPath == null && _decPath == null) {
       return SelectableText(
@@ -858,12 +888,23 @@ class _ImageTabState extends State<_ImageTab> {
           const Text('ENCRYPTED', style: TextStyle(fontWeight: FontWeight.bold)),
           const SizedBox(height: 8),
           Image.file(File(_encPath!)),
+          TextButton.icon(
+            icon: const Icon(Icons.save_alt, size: 16),
+            label: const Text('Save to gallery'),
+            onPressed: () => _saveToGallery(_encPath!, 'Encrypted image'),
+          ),
         ],
         if (_decPath != null) ...[
           const SizedBox(height: 16),
           const Text('DECRYPTED', style: TextStyle(fontWeight: FontWeight.bold)),
           const SizedBox(height: 8),
           Image.file(File(_decPath!)),
+          TextButton.icon(
+            icon: const Icon(Icons.save_alt, size: 16),
+            label: const Text('Save to gallery'),
+            onPressed: () => _saveToGallery(_encPath!, 'Encrypted image'),
+          ),
+
         ],
         if (_status.isNotEmpty) ...[
           const SizedBox(height: 16),
