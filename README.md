@@ -49,7 +49,7 @@ You can watch a text like "hello there!" turn into garbage bytes `c9213ad33dc324
 - Live preview of ciphertext and hashes
 - Hex and Latin-1 view for ciphertext
 - Hex, text, and base64 input/output formats
-
+- Save encrypted/decrypted images to the phone's gallery
 ---
 
 ## Architecture
