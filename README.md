@@ -17,7 +17,6 @@ You can watch a text like "hello there!" turn into garbage bytes `c9213ad33dc324
 
 ---
 ## Screenshots
-## Screenshots
 
 <p align="center">
   <img src="docs/img/text_tab_img2.png" alt="Text tab (AES-128 ECB mode)" width="300">
