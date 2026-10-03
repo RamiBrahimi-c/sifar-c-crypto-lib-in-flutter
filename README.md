@@ -17,14 +17,22 @@ You can watch a text like "hello there!" turn into garbage bytes `c9213ad33dc324
 
 ---
 ## Screenshots
-![Text tab (AES128 ecb-mode example)](docs/img/text_tab_img2.png)
-![Text tab (AES128 cbc-mode example)](docs/img/text_tab_img3.png)
+## Screenshots
 
-![Image tab (showing encryption on real image)](docs/img/image_tab_img3.png)  
-![Image tab (decrypting same image with same key hence original picture)](docs/img/image_tab_img2.png)  
+<p align="center">
+  <img src="docs/img/text_tab_img2.png" alt="Text tab (AES-128 ECB mode)" width="300">
+  <img src="docs/img/text_tab_img3.png" alt="Text tab (AES-128 CBC mode)" width="300">
+</p>
 
-![Hash tab (sha256 example)](docs/img/hash_tab_img2.png)  
-![Hash tab (sha512 example)](docs/img/hash_tab_img3.png)  
+<p align="center">
+  <img src="docs/img/image_tab_img3.png" alt="Image tab (encryption)" width="300">
+  <img src="docs/img/image_tab_img2.png" alt="Image tab (decryption)" width="300">
+</p>
+
+<p align="center">
+  <img src="docs/img/hash_tab_img2.png" alt="Hash tab (SHA-256)" width="300">
+  <img src="docs/img/hash_tab_img3.png" alt="Hash tab (SHA-512)" width="300">
+</p>
 ---
 
 ## Features
