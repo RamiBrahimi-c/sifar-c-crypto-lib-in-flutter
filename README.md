@@ -29,6 +29,14 @@ You can watch a text like "hello there!" turn into garbage bytes `c9213ad33dc324
 </p>
 
 <p align="center">
+  <img src="docs/img/image_tab_img1.png" alt="Image tab general overview" width="300">
+  <img src="docs/img/image_tab_img4.png" alt="Image tab (encryption) with save button" width="300">
+
+
+</p>
+
+
+<p align="center">
   <img src="docs/img/hash_tab_img2.png" alt="Hash tab (SHA-256)" width="300">
   <img src="docs/img/hash_tab_img3.png" alt="Hash tab (SHA-512)" width="300">
 </p>
