@@ -16,15 +16,21 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) => MaterialApp(
     title: 'Sifar',
     themeMode: ThemeMode.system,
-  theme: ThemeData(useMaterial3: true, colorSchemeSeed: Colors.indigo, brightness: Brightness.light),
-    darkTheme: ThemeData(useMaterial3: true, colorSchemeSeed: Colors.indigo, brightness: Brightness.dark),
+    theme: ThemeData(
+      useMaterial3: true,
+      colorSchemeSeed: Colors.indigo,
+      brightness: Brightness.light,
+    ),
+    darkTheme: ThemeData(
+      useMaterial3: true,
+      colorSchemeSeed: Colors.indigo,
+      brightness: Brightness.dark,
+    ),
     home: const HomePage(),
   );
 }
 
-/// Ciphers exposed in the dropdown. Must match names accepted by
-/// `get_block_size` in C and by the C encrypt/decrypt functions.
-const _ciphers = ['aes', 'des' , '3des' , 'blowfish', 'tea', 'xtea', 'rc4' , 'redpike'];
+const _ciphers = ['aes', 'des', '3des', 'blowfish', 'tea', 'xtea', 'rc4', 'redpike'];
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -35,9 +41,16 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin {
   late final TabController _tabs;
 
-  // ---- shared state across both tabs ----
   final _keyCtrl = TextEditingController(text: '00112233445566778899aabbccddeeff');
+  final _ivCtrl  = TextEditingController(text: '00000000000000000000000000000000');
   String _cipher = 'aes';
+  String _mode   = 'ecb';
+
+  static const _streamCiphers = {'rc4'};
+  bool get _cipherSupportsModes => !_streamCiphers.contains(_cipher);
+  bool get _modeNeedsIv        => _cipherSupportsModes && _mode != 'ecb';
+
+  int _lastTab = 0;
 
   @override
   void initState() {
@@ -45,17 +58,22 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     _tabs = TabController(length: 3, vsync: this);
     _tabs.addListener(_onTabChanged);
     _keyCtrl.addListener(_onKeyChanged);
+    _ivCtrl.addListener(_onIvChanged);
   }
 
   @override
   void dispose() {
     _tabs.removeListener(_onTabChanged);
     _keyCtrl.removeListener(_onKeyChanged);
+    _ivCtrl.removeListener(_onIvChanged);
     _tabs.dispose();
     _keyCtrl.dispose();
+    _ivCtrl.dispose();
     super.dispose();
   }
-  int _lastTab = 0;
+
+  void _onIvChanged()  => setState(() {});
+  void _onKeyChanged() => setState(() {});
 
   void _onTabChanged() {
     if (_tabs.index != _lastTab) {
@@ -63,18 +81,24 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       setState(() {});
     }
   }
-  bool get _showCipherControls => _tabs.index != 2;  // 0=Text, 1=Image, 2=Hash
 
-  void _onKeyChanged() => setState(() {});  // rebuild to re-evaluate
+  bool get _showCipherControls => _tabs.index != 2;
 
   bool get _keyIsValid {
     final key = _hexToBytes(_keyCtrl.text);
     if (key == null) return false;
     final expected = keySizeOf(_cipher);
     if (expected > 0) return key.length == expected;
-    return key.isNotEmpty;   // variable ciphers: anything non-empty
+    return key.isNotEmpty;
   }
-  // ---- helpers shared by both tabs ----
+
+  bool get _ivIsValid {
+    final iv = _hexToBytes(_ivCtrl.text);
+    if (iv == null) return false;
+    final expected = blockSizeOf(_cipher);
+    return expected > 0 && iv.length == expected;
+  }
+
   Uint8List? _hexToBytes(String hex) {
     hex = hex.replaceAll(RegExp(r'\s'), '');
     if (hex.length.isOdd) return null;
@@ -105,30 +129,190 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   Uint8List _requireKey() {
     final key = _hexToBytes(_keyCtrl.text);
     if (key == null) throw ArgumentError('Key must be valid hex');
-
     final expected = keySizeOf(_cipher);
-    // expected == -1 means variable-length cipher; C will validate
     if (expected > 0 && key.length != expected) {
       throw ArgumentError(
         '${_cipher.toUpperCase()} requires $expected bytes (${expected * 2} hex chars), '
         'got ${key.length}',
       );
     }
-    // expected == -1: variable ciphers (blowfish, rc4) — C-side validates
     return key;
   }
 
+  Uint8List _requireIv() {
+    final iv = _hexToBytes(_ivCtrl.text);
+    if (iv == null) throw ArgumentError('IV must be valid hex');
+    final expected = blockSizeOf(_cipher);
+    if (iv.length != expected) {
+      throw ArgumentError('IV must be $expected bytes (${expected * 2} hex chars)');
+    }
+    return iv;
+  }
 
-
+  void _generateIv() {
+    final len = blockSizeOf(_cipher);
+    if (len <= 0) return;
+    final rng = Random.secure();
+    final iv = Uint8List.fromList(List.generate(len, (_) => rng.nextInt(256)));
+    _ivCtrl.text = iv.map((b) => b.toRadixString(16).padLeft(2, '0')).join();
+  }
 
   void _generateKey() {
     final expected = keySizeOf(_cipher);
-    final length = expected > 0 ? expected : 16;   // 16 for variable ciphers
+    final length = expected > 0 ? expected : 16;
     final rng = Random.secure();
-    final key = Uint8List.fromList(
-      List.generate(length, (_) => rng.nextInt(256)),
-    );
+    final key = Uint8List.fromList(List.generate(length, (_) => rng.nextInt(256)));
     _keyCtrl.text = key.map((b) => b.toRadixString(16).padLeft(2, '0')).join();
+  }
+
+  Widget _buildKeyField(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: TextField(
+            controller: _keyCtrl,
+            decoration: InputDecoration(
+              labelText: 'Key (hex)',
+              helperText: _keyHint(),
+              border: const OutlineInputBorder(),
+              enabledBorder: OutlineInputBorder(
+                borderSide: BorderSide(
+                  color: _keyCtrl.text.isEmpty
+                      ? Theme.of(context).colorScheme.outline
+                      : (_keyIsValid ? Colors.green : Colors.red),
+                  width: 2,
+                ),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderSide: BorderSide(
+                  color: _keyCtrl.text.isEmpty
+                      ? Theme.of(context).colorScheme.primary
+                      : (_keyIsValid ? Colors.green : Colors.red),
+                  width: 2,
+                ),
+              ),
+              suffixIcon: _keyCtrl.text.isEmpty
+                  ? null
+                  : IconButton(
+                      icon: const Icon(Icons.copy, size: 18),
+                      tooltip: 'Copy key',
+                      onPressed: () {
+                        Clipboard.setData(ClipboardData(text: _keyCtrl.text));
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Key copied')),
+                        );
+                      },
+                    ),
+            ),
+          ),
+        ),
+        const SizedBox(width: 8),
+        IconButton(
+          onPressed: _generateKey,
+          icon: const Icon(Icons.casino),
+          tooltip: 'Random key',
+        ),
+      ],
+    );
+  }
+
+  Widget _buildIvField(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: TextField(
+            controller: _ivCtrl,
+            decoration: InputDecoration(
+              labelText: 'IV (hex)',
+              helperText: 'must be ${blockSizeOf(_cipher) * 2} hex chars',
+              border: const OutlineInputBorder(),
+              enabledBorder: OutlineInputBorder(
+                borderSide: BorderSide(
+                  color: _ivCtrl.text.isEmpty
+                      ? Theme.of(context).colorScheme.outline
+                      : (_ivIsValid ? Colors.green : Colors.red),
+                  width: 2,
+                ),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderSide: BorderSide(
+                  color: _ivCtrl.text.isEmpty
+                      ? Theme.of(context).colorScheme.primary
+                      : (_ivIsValid ? Colors.green : Colors.red),
+                  width: 2,
+                ),
+              ),
+              suffixIcon: _ivCtrl.text.isEmpty
+                  ? null
+                  : IconButton(
+                      icon: const Icon(Icons.copy, size: 18),
+                      tooltip: 'Copy IV',
+                      onPressed: () {
+                        Clipboard.setData(ClipboardData(text: _ivCtrl.text));
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('IV copied')),
+                        );
+                      },
+                    ),
+            ),
+          ),
+        ),
+        const SizedBox(width: 8),
+        IconButton(
+          onPressed: _generateIv,
+          icon: const Icon(Icons.casino),
+          tooltip: 'Random IV',
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCipherDropdown(BuildContext context) {
+    return Row(
+      children: [
+        const Text('Cipher: '),
+        const SizedBox(width: 8),
+        Expanded(
+          child: DropdownButton<String>(
+            isExpanded: true,
+            value: _cipher,
+            onChanged: (v) => setState(() {
+              _cipher = v!;
+              if (_streamCiphers.contains(_cipher)) _mode = 'ecb';
+            }),
+            items: _ciphers
+                .map((c) => DropdownMenuItem(
+                      value: c,
+                      child: Text(c.toUpperCase()),
+                    ))
+                .toList(),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildModeDropdown(BuildContext context) {
+    return Row(
+      children: [
+        const Text('Mode: '),
+        const SizedBox(width: 8),
+        Expanded(
+          child: DropdownButton<String>(
+            isExpanded: true,
+            value: _mode,
+            onChanged: (v) => setState(() => _mode = v!),
+            items: const [
+              DropdownMenuItem(value: 'ecb', child: Text('ECB')),
+              DropdownMenuItem(value: 'cbc', child: Text('CBC')),
+              DropdownMenuItem(value: 'cfb', child: Text('CFB')),
+              DropdownMenuItem(value: 'ofb', child: Text('OFB')),
+              DropdownMenuItem(value: 'ctr', child: Text('CTR')),
+            ],
+          ),
+        ),
+      ],
+    );
   }
 
   @override
@@ -143,99 +327,44 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       ),
       body: Column(
         children: [
-          // Shared controls: key + cipher selection
           if (_showCipherControls)
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-            child: Column(
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: TextField(
-                        controller: _keyCtrl,
-                        decoration: InputDecoration(
-                          labelText: 'Key (hex)',
-                          helperText: _keyHint(),
-                          border: const OutlineInputBorder(),
-                          enabledBorder: OutlineInputBorder(
-                            borderSide: BorderSide(
-                              color: _keyCtrl.text.isEmpty
-                                  ? Theme.of(context).colorScheme.outline
-                                  : (_keyIsValid ? Colors.green : Colors.red),
-                              width: 2,
-                            ),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderSide: BorderSide(
-                              color: _keyCtrl.text.isEmpty
-                                  ? Theme.of(context).colorScheme.primary
-                                  : (_keyIsValid ? Colors.green : Colors.red),
-                              width: 2,
-                            ),
-                          ),
-                          suffixIcon: _keyCtrl.text.isEmpty
-                            ? null
-                            : IconButton(
-                                icon: const Icon(Icons.copy, size: 18),
-                                tooltip: 'Copy key',
-                                onPressed: () {
-                                  Clipboard.setData(ClipboardData(text: _keyCtrl.text));
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(content: Text('Key copied')),
-                                  );
-                                },
-                              ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    IconButton(
-                      onPressed: _generateKey,
-                      icon: const Icon(Icons.casino),
-                      tooltip: 'Random key',
-                    ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+              child: Column(
+                children: [
+                  _buildKeyField(context),
+                  if (_modeNeedsIv) ...[
+                    const SizedBox(height: 12),
+                    _buildIvField(context),
                   ],
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    const Text('Cipher: '),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: DropdownButton<String>(
-                        isExpanded: true,
-                        value: _cipher,
-                        onChanged: (v) => setState(() => _cipher = v!),
-                        items: _ciphers
-                            .map((c) => DropdownMenuItem(
-                                  value: c,
-                                  child: Text(c.toUpperCase()),
-                                ))
-                            .toList(),
-                      ),
-                    ),
+                  const SizedBox(height: 12),
+                  _buildCipherDropdown(context),
+                  if (_cipherSupportsModes) ...[
+                    const SizedBox(height: 8),
+                    _buildModeDropdown(context),
                   ],
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
           Expanded(
             child: TabBarView(
               controller: _tabs,
               children: [
                 _TextTab(
                   cipher: _cipher,
+                  mode: _mode,
+                  keyText: _keyCtrl.text,
+                  ivText: _ivCtrl.text,
                   requireKey: _requireKey,
+                  requireIv: _requireIv,
                   hexToBytes: _hexToBytes,
                 ),
                 _ImageTab(
                   cipher: _cipher,
+                  mode: _mode,
                   requireKey: _requireKey,
                 ),
-                _HashTab(
-
-                ),
+                const _HashTab(),
               ],
             ),
           ),
@@ -244,18 +373,26 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     );
   }
 }
+
 // ============================================================
 // TEXT TAB
 // ============================================================
 class _TextTab extends StatefulWidget {
   final String cipher;
+  final String mode;
+  final String keyText;
+  final String ivText;
   final Uint8List Function() requireKey;
+  final Uint8List Function() requireIv;
   final Uint8List? Function(String) hexToBytes;
-
 
   const _TextTab({
     required this.cipher,
+    required this.mode,
+    required this.keyText,
+    required this.ivText,
     required this.requireKey,
+    required this.requireIv,
     required this.hexToBytes,
   });
 
@@ -266,7 +403,6 @@ class _TextTab extends StatefulWidget {
 enum CipherView { hex, latin1 }
 enum PlainFormat { text, hex }
 
-
 class _TextTabState extends State<_TextTab> {
   final _plainCtrl = TextEditingController(text: 'hello world!!!!!');
   String _status = '';
@@ -276,6 +412,8 @@ class _TextTabState extends State<_TextTab> {
   CipherView _view = CipherView.hex;
   PlainFormat _plainFormat = PlainFormat.text;
 
+  Uint8List? _cachedLive;
+  String _lastText = '';
 
   @override
   void initState() {
@@ -285,14 +423,23 @@ class _TextTabState extends State<_TextTab> {
   }
 
   @override
+  void didUpdateWidget(covariant _TextTab oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // If the parent changed cipher/mode/key/iv, recompute the live preview.
+    if (oldWidget.cipher != widget.cipher ||
+        oldWidget.mode   != widget.mode   ||
+        oldWidget.keyText != widget.keyText ||
+        oldWidget.ivText  != widget.ivText) {
+      _cachedLive = _liveCipherBytes();
+    }
+  }
+
+  @override
   void dispose() {
     _plainCtrl.removeListener(_onChanged);
     _plainCtrl.dispose();
     super.dispose();
   }
-
-  Uint8List? _cachedLive;
-  String _lastText = '';
 
   void _onChanged() {
     if (_plainCtrl.text == _lastText) return;
@@ -301,6 +448,7 @@ class _TextTabState extends State<_TextTab> {
       _cachedLive = _liveCipherBytes();
     });
   }
+
   String _bytesToHex(Uint8List b) =>
       b.map((x) => x.toRadixString(16).padLeft(2, '0')).join();
 
@@ -311,6 +459,7 @@ class _TextTabState extends State<_TextTab> {
     padded.fillRange(data.length, padded.length, padLen);
     return padded;
   }
+
   void _setDecryptMode(bool value) {
     setState(() {
       _decryptMode = value;
@@ -318,11 +467,28 @@ class _TextTabState extends State<_TextTab> {
       _status = '';
     });
   }
+
   Uint8List? _parsePlain() {
     if (_plainFormat == PlainFormat.text) {
       return Uint8List.fromList(utf8.encode(_plainCtrl.text));
     }
     return widget.hexToBytes(_plainCtrl.text);
+  }
+
+  Uint8List? _applyCipher(Uint8List rawInput, int blockSize) {
+    final key = widget.requireKey();
+    final iv  = widget.mode == 'ecb' ? null : widget.requireIv();
+    final plain = _pad(rawInput, blockSize);
+
+    return _decryptMode
+        ? SifarCipherMode.decrypt(
+            cipher: widget.cipher, mode: widget.mode,
+            input: plain, key: key, iv: iv,
+          )
+        : SifarCipherMode.encrypt(
+            cipher: widget.cipher, mode: widget.mode,
+            input: plain, key: key, iv: iv,
+          );
   }
 
   Uint8List? _liveCipherBytes() {
@@ -333,19 +499,11 @@ class _TextTabState extends State<_TextTab> {
       final blockSize = blockSizeOf(widget.cipher);
       if (blockSize <= 0) return null;
 
-      final key = widget.requireKey();
       final raw = _parsePlain();
       if (raw == null) throw ArgumentError('Invalid hex input');
 
-      final plain = _pad(raw, blockSize);
+      final result = _applyCipher(raw, blockSize)!;
 
-      final cipher = SifarCipher(widget.cipher, key);
-      final result = _decryptMode
-          ? cipher.decrypt(plain)
-          : cipher.encrypt(plain);
-      cipher.dispose();
-
-      // Same strip as _run():
       if (_decryptMode && result.length >= raw.length) {
         return result.sublist(0, raw.length);
       }
@@ -355,18 +513,15 @@ class _TextTabState extends State<_TextTab> {
     }
   }
 
-
   String _renderCipher(Uint8List? bytes) {
     if (bytes == null) {
       return _decryptMode
-        ? '(type ciphertext to see live plaintext)'
-        : '(type plaintext to see live ciphertext)';
+          ? '(type ciphertext to see live plaintext)'
+          : '(type plaintext to see live ciphertext)';
     }
-
     if (_decryptMode) {
       return utf8.decode(bytes, allowMalformed: true);
     }
-
     if (_view == CipherView.hex) return _bytesToHex(bytes);
     return String.fromCharCodes(bytes);
   }
@@ -379,7 +534,6 @@ class _TextTabState extends State<_TextTab> {
     });
   }
 
-
   void _run() {
     setState(() {
       _busy = true;
@@ -389,21 +543,12 @@ class _TextTabState extends State<_TextTab> {
       final blockSize = blockSizeOf(widget.cipher);
       if (blockSize <= 0) throw ArgumentError('Unknown cipher: ${widget.cipher}');
 
-      final key = widget.requireKey();
       final raw = _parsePlain();
       if (raw == null) throw ArgumentError('Invalid hex input');
 
-      final plain = _pad(raw, blockSize);
+      final result = _applyCipher(raw, blockSize)!;
 
-      final cipher = SifarCipher(widget.cipher, key);
-      final result = _decryptMode
-          ? cipher.decrypt(plain)
-          : cipher.encrypt(plain);
-      cipher.dispose();
-
-      // For encrypt mode, show ciphertext hex. For decrypt mode, show plaintext.
       if (_decryptMode) {
-        // strip padding, show as text (hex-stripping is approximate here)
         final stripped = result.length >= raw.length
             ? result.sublist(0, raw.length)
             : result;
@@ -415,7 +560,7 @@ class _TextTabState extends State<_TextTab> {
       } else {
         setState(() {
           _busy = false;
-          _status = 'CIPHER (${widget.cipher.toUpperCase()}):\n'
+          _status = 'CIPHER (${widget.cipher.toUpperCase()} / ${widget.mode.toUpperCase()}):\n'
               '${_bytesToHex(result)}';
         });
       }
@@ -427,12 +572,12 @@ class _TextTabState extends State<_TextTab> {
     }
   }
 
-
-
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+    return SingleChildScrollView(
+      padding: EdgeInsets.fromLTRB(
+        16, 8, 16, 16 + MediaQuery.of(context).viewInsets.bottom,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -460,89 +605,76 @@ class _TextTabState extends State<_TextTab> {
             ],
           ),
           const SizedBox(height: 6),
+          TextField(
+            controller: _plainCtrl,
+            maxLines: 3,
+            decoration: InputDecoration(
+              labelText: 'Plaintext',
+              border: const OutlineInputBorder(),
+              suffixIcon: _plainCtrl.text.isEmpty
+                  ? null
+                  : IconButton(
+                      icon: const Icon(Icons.clear, size: 18),
+                      tooltip: 'Clear',
+                      onPressed: () => setState(() {
+                        _plainCtrl.clear();
+                        _status = '';
+                      }),
+                    ),
+            ),
+          ),
+          const SizedBox(height: 8),
           Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Expanded(
-                child: TextField(
-                  controller: _plainCtrl,
-                  maxLines: 3,
-                  decoration: InputDecoration(
-                    labelText: 'Plaintext',
-                    border: const OutlineInputBorder(),
-                    suffixIcon: _plainCtrl.text.isEmpty
-                        ? null
-                        : IconButton(
-                            icon: const Icon(Icons.clear, size: 18),
-                            tooltip: 'Clear',
-                            onPressed: () => setState(() {
-                              _plainCtrl.clear();
-                              _status = '';
-                            }),
-                          ),
-                  ),
-                ),
+              const Text('Ciphertext view:', style: TextStyle(fontSize: 12)),
+              const SizedBox(width: 8),
+              SegmentedButton<CipherView>(
+                segments: const [
+                  ButtonSegment(value: CipherView.hex, label: Text('Hex')),
+                  ButtonSegment(value: CipherView.latin1, label: Text('Latin-1')),
+                ],
+                selected: {_view},
+                onSelectionChanged: (s) => setState(() => _view = s.first),
+                style: const ButtonStyle(visualDensity: VisualDensity.compact),
               ),
             ],
           ),
-          const SizedBox(height: 8),
-          // ---- live preview box ----
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          const SizedBox(height: 6),
+          Stack(
             children: [
-              Row(
-                children: [
-                  const Text('Ciphertext view:', style: TextStyle(fontSize: 12)),
-                  const SizedBox(width: 8),
-                  SegmentedButton<CipherView>(
-                    segments: const [
-                      ButtonSegment(value: CipherView.hex, label: Text('Hex')),
-                      ButtonSegment(value: CipherView.latin1, label: Text('Latin-1')),
-                    ],
-                    selected: {_view},
-                    onSelectionChanged: (s) => setState(() => _view = s.first),
-                    style: const ButtonStyle(visualDensity: VisualDensity.compact),
-                  ),
-                ],
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: SelectableText(
+                  _renderCipher(_cachedLive),
+                  style: const TextStyle(fontFamily: 'monospace', fontSize: 11),
+                ),
               ),
-              const SizedBox(height: 6),
-              Stack(
-                children: [
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: SelectableText(
-                      _renderCipher(_cachedLive),
-                      style: const TextStyle(fontFamily: 'monospace', fontSize: 11),
-                      maxLines: 3,
-                    ),
+              if (_cachedLive != null)
+                Positioned(
+                  top: 0,
+                  right: 0,
+                  child: IconButton(
+                    icon: const Icon(Icons.copy, size: 16),
+                    tooltip: 'Copy ciphertext',
+                    onPressed: () {
+                      final text = _renderCipher(_cachedLive);
+                      Clipboard.setData(ClipboardData(text: text));
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Ciphertext copied')),
+                      );
+                    },
                   ),
-                  if (_cachedLive != null)
-                    Positioned(
-                      top: 0,
-                      right: 0,
-                      child: IconButton(
-                        icon: const Icon(Icons.copy, size: 16),
-                        tooltip: 'Copy ciphertext',
-                        onPressed: () {
-                          final text = _renderCipher(_cachedLive);
-                          Clipboard.setData(ClipboardData(text: text));
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Ciphertext copied')),
-                          );
-                        },
-                      ),
-                    ),
-                ],
-              ),
+                ),
             ],
           ),
           const SizedBox(height: 12),
-          Expanded(
+          SizedBox(
+            height: 180,
             child: Stack(
               children: [
                 Container(
@@ -564,7 +696,7 @@ class _TextTabState extends State<_TextTab> {
                     right: 4,
                     child: IconButton(
                       icon: const Icon(Icons.copy, size: 18),
-                      tooltip: 'Copy ciphertext',
+                      tooltip: 'Copy',
                       onPressed: () {
                         Clipboard.setData(ClipboardData(text: _status));
                         ScaffoldMessenger.of(context).showSnackBar(
@@ -589,15 +721,18 @@ class _TextTabState extends State<_TextTab> {
     );
   }
 }
+
 // ============================================================
 // IMAGE TAB
 // ============================================================
 class _ImageTab extends StatefulWidget {
   final String cipher;
+  final String mode;
   final Uint8List Function() requireKey;
 
   const _ImageTab({
     required this.cipher,
+    required this.mode,
     required this.requireKey,
   });
 
@@ -747,6 +882,17 @@ class _ImageTabState extends State<_ImageTab> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          if (widget.mode != 'ecb')
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: Text(
+                'Note: image encryption uses ECB regardless of mode.',
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.error,
+                  fontSize: 12,
+                ),
+              ),
+            ),
           Expanded(
             child: Container(
               padding: const EdgeInsets.all(12),
@@ -795,8 +941,6 @@ class _ImageTabState extends State<_ImageTab> {
   }
 }
 
-
-
 // ============================================================
 // HASH TAB
 // ============================================================
@@ -815,14 +959,8 @@ class _HashTabState extends State<_HashTab> {
   String _hash = 'sha256';
   HashFormat _format = HashFormat.text;
   HashView _view = HashView.hex;
-  String _status = '';
-
 
   Uint8List? _cachedHash;
-
-  void _onChanged() => setState(() {
-    _cachedHash = _liveHash();
-  });
 
   @override
   void initState() {
@@ -837,14 +975,17 @@ class _HashTabState extends State<_HashTab> {
     super.dispose();
   }
 
-  // void _onChanged() => setState(() {});
+  void _onChanged() {
+    setState(() {
+      _cachedHash = _liveHash();
+    });
+  }
 
   Uint8List? _parseInput() {
     if (_inputCtrl.text.isEmpty) return null;
     if (_format == HashFormat.text) {
       return Uint8List.fromList(utf8.encode(_inputCtrl.text));
     }
-    // hex
     final hex = _inputCtrl.text.replaceAll(RegExp(r'\s'), '');
     if (hex.length.isOdd) return null;
     try {
@@ -879,8 +1020,10 @@ class _HashTabState extends State<_HashTab> {
   Widget build(BuildContext context) {
     final live = _cachedHash;
 
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+    return SingleChildScrollView(
+      padding: EdgeInsets.fromLTRB(
+        16, 8, 16, 16 + MediaQuery.of(context).viewInsets.bottom,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -897,7 +1040,6 @@ class _HashTabState extends State<_HashTab> {
                 onSelectionChanged: (s) => setState(() {
                   _format = s.first;
                   _inputCtrl.clear();
-                  _status = '';
                 }),
                 style: const ButtonStyle(visualDensity: VisualDensity.compact),
               ),
@@ -937,7 +1079,6 @@ class _HashTabState extends State<_HashTab> {
                       tooltip: 'Clear',
                       onPressed: () => setState(() {
                         _inputCtrl.clear();
-                        _status = '';
                       }),
                     ),
             ),
@@ -959,48 +1100,39 @@ class _HashTabState extends State<_HashTab> {
             ],
           ),
           const SizedBox(height: 6),
-          Expanded(
-            child: Stack(
-              children: [
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: SingleChildScrollView(
-                    child: SelectableText(
-                      _renderHash(live),
-                      style: const TextStyle(fontFamily: 'monospace', fontSize: 13),
-                    ),
+          Stack(
+            children: [
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: SelectableText(
+                  _renderHash(live),
+                  style: const TextStyle(fontFamily: 'monospace', fontSize: 13),
+                ),
+              ),
+              if (live != null)
+                Positioned(
+                  top: 4,
+                  right: 4,
+                  child: IconButton(
+                    icon: const Icon(Icons.copy, size: 18),
+                    tooltip: 'Copy hash',
+                    onPressed: () {
+                      Clipboard.setData(ClipboardData(text: _renderHash(live)));
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Hash copied')),
+                      );
+                    },
                   ),
                 ),
-                if (live != null)
-                  Positioned(
-                    top: 4,
-                    right: 4,
-                    child: IconButton(
-                      icon: const Icon(Icons.copy, size: 18),
-                      tooltip: 'Copy hash',
-                      onPressed: () {
-                        Clipboard.setData(ClipboardData(text: _renderHash(live)));
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Hash copied')),
-                        );
-                      },
-                    ),
-                  ),
-              ],
-            ),
+            ],
           ),
         ],
       ),
     );
   }
 }
-
-
-
-
-

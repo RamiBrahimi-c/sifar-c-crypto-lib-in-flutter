@@ -502,6 +502,51 @@ external void sha512_hash(
   ffi.Pointer<uchar_t> digest,
 );
 
+@ffi.Native<
+  ffi.Int Function(
+    ffi.Pointer<ffi.Char>,
+    ffi.Pointer<ffi.Char>,
+    ffi.Pointer<uchar_t>,
+    ffi.Pointer<uchar_t>,
+    ffi.Pointer<uchar_t>,
+    ffi.Int,
+    ffi.Pointer<ffi.Void>,
+  )
+>()
+external int cipher_encrypt_mode(
+  ffi.Pointer<ffi.Char> cipher,
+  ffi.Pointer<ffi.Char> mode,
+  ffi.Pointer<uchar_t> input,
+  ffi.Pointer<uchar_t> output,
+  ffi.Pointer<uchar_t> iv,
+  int length,
+  ffi.Pointer<ffi.Void> key,
+);
+
+@ffi.Native<
+  ffi.Int Function(
+    ffi.Pointer<ffi.Char>,
+    ffi.Pointer<ffi.Char>,
+    ffi.Pointer<uchar_t>,
+    ffi.Pointer<uchar_t>,
+    ffi.Pointer<uchar_t>,
+    ffi.Int,
+    ffi.Pointer<ffi.Void>,
+  )
+>()
+external int cipher_decrypt_mode(
+  ffi.Pointer<ffi.Char> cipher,
+  ffi.Pointer<ffi.Char> mode,
+  ffi.Pointer<uchar_t> input,
+  ffi.Pointer<uchar_t> output,
+  ffi.Pointer<uchar_t> iv,
+  int length,
+  ffi.Pointer<ffi.Void> key,
+);
+
+@ffi.Native<ffi.Int Function(ffi.Pointer<ffi.Char>)>()
+external int has_iv(ffi.Pointer<ffi.Char> mode);
+
 /// Opaque handles — Dart only ever sees pointers to these
 /// typedef struct AesKey AesKey;
 /// typedef struct DesKey DesKey;

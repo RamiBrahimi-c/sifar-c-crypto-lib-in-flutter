@@ -530,3 +530,137 @@ int get_digest_size(const char* hash_name) {
 }
 
 
+
+int cipher_encrypt_mode(const char* cipher, const char* mode,
+                        const uchar_t* in, uchar_t* out, const uchar_t* iv,
+                        int length, const void* key) {
+    if (strcmp(cipher, "aes") == 0) {
+        if (strcmp(mode, "ecb") == 0) return aes_encrypt(in, out, length, key);
+        if (strcmp(mode, "cbc") == 0) return aes_encrypt_cbc(in, out, (uchar_t*)iv, length, key);
+        if (strcmp(mode, "cfb") == 0) return aes_encrypt_cfb(in, out, (uchar_t*)iv, length, key);
+        if (strcmp(mode, "ofb") == 0) return aes_encrypt_ofb(in, out, (uchar_t*)iv, length, key);
+        if (strcmp(mode, "ctr") == 0) return aes_encrypt_ctr(in, out, (uchar_t*)iv, length, key);
+    }
+    if (strcmp(cipher, "des") == 0) {
+        if (strcmp(mode, "ecb") == 0) return des_encrypt(in, out, length, key);
+        if (strcmp(mode, "cbc") == 0) return des_encrypt_cbc(in, out, (uchar_t*)iv, length, key);
+        if (strcmp(mode, "cfb") == 0) return des_encrypt_cfb(in, out, (uchar_t*)iv, length, key);
+        if (strcmp(mode, "ofb") == 0) return des_encrypt_ofb(in, out, (uchar_t*)iv, length, key);
+        if (strcmp(mode, "ctr") == 0) return des_encrypt_ctr(in, out, (uchar_t*)iv, length, key);
+    }
+    if (strcmp(cipher, "3des") == 0) {
+        if (strcmp(mode, "ecb") == 0) return tdes_encrypt(in, out, length, key);
+        if (strcmp(mode, "cbc") == 0) return tdes_encrypt_cbc(in, out, (uchar_t*)iv, length, key);
+        if (strcmp(mode, "cfb") == 0) return tdes_encrypt_cfb(in, out, (uchar_t*)iv, length, key);
+        if (strcmp(mode, "ofb") == 0) return tdes_encrypt_ofb(in, out, (uchar_t*)iv, length, key);
+        if (strcmp(mode, "ctr") == 0) return tdes_encrypt_ctr(in, out, (uchar_t*)iv, length, key);
+    }
+    if (strcmp(cipher, "blowfish") == 0) {
+        if (strcmp(mode, "ecb") == 0) return blowfish_encrypt(in, out, length, key);
+        if (strcmp(mode, "cbc") == 0) return blowfish_encrypt_cbc(in, out, (uchar_t*)iv, length, key);
+        if (strcmp(mode, "cfb") == 0) return blowfish_encrypt_cfb(in, out, (uchar_t*)iv, length, key);
+        if (strcmp(mode, "ofb") == 0) return blowfish_encrypt_ofb(in, out, (uchar_t*)iv, length, key);
+        if (strcmp(mode, "ctr") == 0) return blowfish_encrypt_ctr(in, out, (uchar_t*)iv, length, key);
+    }
+    if (strcmp(cipher, "redpike") == 0) {
+        if (strcmp(mode, "ecb") == 0) return redpike_encrypt(in, out, length, key);
+        if (strcmp(mode, "cbc") == 0) return redpike_encrypt_cbc(in, out, (uchar_t*)iv, length, key);
+        if (strcmp(mode, "cfb") == 0) return redpike_encrypt_cfb(in, out, (uchar_t*)iv, length, key);
+        if (strcmp(mode, "ofb") == 0) return redpike_encrypt_ofb(in, out, (uchar_t*)iv, length, key);
+        if (strcmp(mode, "ctr") == 0) return redpike_encrypt_ctr(in, out, (uchar_t*)iv, length, key);
+    }
+    if (strcmp(cipher, "tea") == 0) {
+        if (strcmp(mode, "ecb") == 0) return tea_encrypt(in, out, length, key);
+        if (strcmp(mode, "cbc") == 0) return tea_encrypt_cbc(in, out, (uchar_t*)iv, length, key);
+        if (strcmp(mode, "cfb") == 0) return tea_encrypt_cfb(in, out, (uchar_t*)iv, length, key);
+        if (strcmp(mode, "ofb") == 0) return tea_encrypt_ofb(in, out, (uchar_t*)iv, length, key);
+        if (strcmp(mode, "ctr") == 0) return tea_encrypt_ctr(in, out, (uchar_t*)iv, length, key);
+    }
+    if (strcmp(cipher, "xtea") == 0) {
+        if (strcmp(mode, "ecb") == 0) return xtea_encrypt(in, out, length, key);
+        if (strcmp(mode, "cbc") == 0) return xtea_encrypt_cbc(in, out, (uchar_t*)iv, length, key);
+        if (strcmp(mode, "cfb") == 0) return xtea_encrypt_cfb(in, out, (uchar_t*)iv, length, key);
+        if (strcmp(mode, "ofb") == 0) return xtea_encrypt_ofb(in, out, (uchar_t*)iv, length, key);
+        if (strcmp(mode, "ctr") == 0) return xtea_encrypt_ctr(in, out, (uchar_t*)iv, length, key);
+    }
+    if (strcmp(cipher, "rc4") == 0) {
+        return rc4_encrypt(in, out, length, key);
+    }
+
+    return -1;
+}
+
+
+int cipher_decrypt_mode(const char* cipher, const char* mode,
+                        const uchar_t* in, uchar_t* out, const uchar_t* iv,
+                        int length, const void* key) {
+    if (strcmp(cipher, "aes") == 0) {
+        if (strcmp(mode, "ecb") == 0) return aes_decrypt(in, out, length, key);
+        if (strcmp(mode, "cbc") == 0) return aes_decrypt_cbc(in, out, (uchar_t*)iv, length, key);
+        if (strcmp(mode, "cfb") == 0) return aes_decrypt_cfb(in, out, (uchar_t*)iv, length, key);
+        if (strcmp(mode, "ofb") == 0) return aes_decrypt_ofb(in, out, (uchar_t*)iv, length, key);
+        if (strcmp(mode, "ctr") == 0) return aes_decrypt_ctr(in, out, (uchar_t*)iv, length, key);
+    }
+    if (strcmp(cipher, "des") == 0) {
+        if (strcmp(mode, "ecb") == 0) return des_decrypt(in, out, length, key);
+        if (strcmp(mode, "cbc") == 0) return des_decrypt_cbc(in, out, (uchar_t*)iv, length, key);
+        if (strcmp(mode, "cfb") == 0) return des_decrypt_cfb(in, out, (uchar_t*)iv, length, key);
+        if (strcmp(mode, "ofb") == 0) return des_decrypt_ofb(in, out, (uchar_t*)iv, length, key);
+        if (strcmp(mode, "ctr") == 0) return des_decrypt_ctr(in, out, (uchar_t*)iv, length, key);
+    }
+    if (strcmp(cipher, "3des") == 0) {
+        if (strcmp(mode, "ecb") == 0) return tdes_decrypt(in, out, length, key);
+        if (strcmp(mode, "cbc") == 0) return tdes_decrypt_cbc(in, out, (uchar_t*)iv, length, key);
+        if (strcmp(mode, "cfb") == 0) return tdes_decrypt_cfb(in, out, (uchar_t*)iv, length, key);
+        if (strcmp(mode, "ofb") == 0) return tdes_decrypt_ofb(in, out, (uchar_t*)iv, length, key);
+        if (strcmp(mode, "ctr") == 0) return tdes_decrypt_ctr(in, out, (uchar_t*)iv, length, key);
+    }
+    if (strcmp(cipher, "blowfish") == 0) {
+        if (strcmp(mode, "ecb") == 0) return blowfish_decrypt(in, out, length, key);
+        if (strcmp(mode, "cbc") == 0) return blowfish_decrypt_cbc(in, out, (uchar_t*)iv, length, key);
+        if (strcmp(mode, "cfb") == 0) return blowfish_decrypt_cfb(in, out, (uchar_t*)iv, length, key);
+        if (strcmp(mode, "ofb") == 0) return blowfish_decrypt_ofb(in, out, (uchar_t*)iv, length, key);
+        if (strcmp(mode, "ctr") == 0) return blowfish_decrypt_ctr(in, out, (uchar_t*)iv, length, key);
+    }
+    if (strcmp(cipher, "redpike") == 0) {
+        if (strcmp(mode, "ecb") == 0) return redpike_decrypt(in, out, length, key);
+        if (strcmp(mode, "cbc") == 0) return redpike_decrypt_cbc(in, out, (uchar_t*)iv, length, key);
+        if (strcmp(mode, "cfb") == 0) return redpike_decrypt_cfb(in, out, (uchar_t*)iv, length, key);
+        if (strcmp(mode, "ofb") == 0) return redpike_decrypt_ofb(in, out, (uchar_t*)iv, length, key);
+        if (strcmp(mode, "ctr") == 0) return redpike_decrypt_ctr(in, out, (uchar_t*)iv, length, key);
+    }
+    if (strcmp(cipher, "tea") == 0) {
+        if (strcmp(mode, "ecb") == 0) return tea_decrypt(in, out, length, key);
+        if (strcmp(mode, "cbc") == 0) return tea_decrypt_cbc(in, out, (uchar_t*)iv, length, key);
+        if (strcmp(mode, "cfb") == 0) return tea_decrypt_cfb(in, out, (uchar_t*)iv, length, key);
+        if (strcmp(mode, "ofb") == 0) return tea_decrypt_ofb(in, out, (uchar_t*)iv, length, key);
+        if (strcmp(mode, "ctr") == 0) return tea_decrypt_ctr(in, out, (uchar_t*)iv, length, key);
+    }
+    if (strcmp(cipher, "xtea") == 0) {
+        if (strcmp(mode, "ecb") == 0) return xtea_decrypt(in, out, length, key);
+        if (strcmp(mode, "cbc") == 0) return xtea_decrypt_cbc(in, out, (uchar_t*)iv, length, key);
+        if (strcmp(mode, "cfb") == 0) return xtea_decrypt_cfb(in, out, (uchar_t*)iv, length, key);
+        if (strcmp(mode, "ofb") == 0) return xtea_decrypt_ofb(in, out, (uchar_t*)iv, length, key);
+        if (strcmp(mode, "ctr") == 0) return xtea_decrypt_ctr(in, out, (uchar_t*)iv, length, key);
+    }
+    if (strcmp(cipher, "rc4") == 0) {
+        return rc4_decrypt(in, out, length, key);
+    }
+
+    return -1;
+}
+
+int cipher_decrypt_mode(
+    const char* cipher, const char* mode,
+    const uchar_t* input, uchar_t* output, const uchar_t* iv,
+    int length, const void* key);
+
+
+
+int has_iv(const char* mode) {
+    // returns 1 if the mode needs an IV, 0 otherwise
+    return (strcmp(mode, "cbc") == 0 || strcmp(mode, "cfb") == 0 ||
+            strcmp(mode, "ofb") == 0 || strcmp(mode, "ctr") == 0);
+}
+
+

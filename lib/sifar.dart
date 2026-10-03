@@ -89,6 +89,7 @@ class SifarCipher {
 
   SifarCipher._(this.name, this._handle);
 
+  Pointer<Void> get handle => _handle;
   /// Build a cipher handle from [key] bytes.
   /// [name] must be one of: aes, des, rc4, redpike, tea, xtea.
   factory SifarCipher(String name, Uint8List key) {
@@ -305,3 +306,111 @@ class SifarImage {
     }
   }
 }
+
+
+
+/// Does this mode need an IV?
+bool modeHasIv(String mode) {
+  final ptr = mode.toNativeUtf8();
+  try {
+    return sifar.has_iv(ptr.cast<ffi.Char>()) == 1;
+  } finally {
+    malloc.free(ptr);
+  }
+}
+
+class SifarCipherMode {
+  /// Encrypt [input] with the given [cipher] and [mode].
+  /// [iv] is required for cbc/cfb/ofb/ctr modes; pass null for ecb.
+  /// Returns the raw ciphertext bytes.
+  static Uint8List encrypt({
+    required String cipher,
+    required String mode,
+    required Uint8List input,
+    required Uint8List key,
+    Uint8List? iv,
+  }) {
+    return _run(
+      cipher: cipher,
+      mode: mode,
+      input: input,
+      key: key,
+      iv: iv,
+      encrypt: true,
+    );
+  }
+
+  static Uint8List decrypt({
+    required String cipher,
+    required String mode,
+    required Uint8List input,
+    required Uint8List key,
+    Uint8List? iv,
+  }) {
+    return _run(
+      cipher: cipher,
+      mode: mode,
+      input: input,
+      key: key,
+      iv: iv,
+      encrypt: false,
+    );
+  }
+
+  static Uint8List _run({
+    required String cipher,
+    required String mode,
+    required Uint8List input,
+    required Uint8List key,
+    required Uint8List? iv,
+    required bool encrypt,
+  }) {
+    // Setup the cipher key handle
+    final handle = SifarCipher(cipher, key); // reuse existing factory
+
+    // Allocate input / output buffers
+    final inPtr  = calloc<Uint8>(input.isEmpty ? 1 : input.length);
+    final outPtr = calloc<Uint8>(input.isEmpty ? 1 : input.length);
+    if (input.isNotEmpty) {
+      inPtr.asTypedList(input.length).setAll(0, input);
+    }
+
+    // IV buffer — always allocate, but only fill if provided.
+    // If the mode doesn't need an IV, pass a zero-length buffer.
+    final ivLen = iv?.length ?? 0;
+    final ivPtr = calloc<Uint8>(ivLen == 0 ? 1 : ivLen);
+    if (iv != null) {
+      ivPtr.asTypedList(iv.length).setAll(0, iv);
+    }
+
+    // C-string args
+    final cipherPtr = cipher.toNativeUtf8().cast<ffi.Char>();
+    final modePtr   = mode.toNativeUtf8().cast<ffi.Char>();
+
+    try {
+      final rc = encrypt
+          ? sifar.cipher_encrypt_mode(
+              cipherPtr, modePtr, inPtr.cast(), outPtr.cast(),
+              ivPtr.cast(), input.length, handle.handle,
+            )
+          : sifar.cipher_decrypt_mode(
+              cipherPtr, modePtr, inPtr.cast(), outPtr.cast(),
+              ivPtr.cast(), input.length, handle.handle,
+            );
+
+      if (rc != 0) {
+        throw StateError('$cipher/$mode ${encrypt ? "encrypt" : "decrypt"} failed: $rc');
+      }
+
+      return Uint8List.fromList(outPtr.asTypedList(input.length));
+    } finally {
+      calloc.free(inPtr);
+      calloc.free(outPtr);
+      calloc.free(ivPtr);
+      malloc.free(cipherPtr.cast<ffi.Void>());
+      malloc.free(modePtr.cast<ffi.Void>());
+      handle.dispose();
+    }
+  }
+}
+

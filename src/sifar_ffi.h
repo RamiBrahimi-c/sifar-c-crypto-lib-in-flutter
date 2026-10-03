@@ -118,5 +118,19 @@ void sha512_hash(const uchar_t* data, size_t len, uchar_t digest[64]);
 
 
 
+int cipher_encrypt_mode(
+    const char* cipher, const char* mode,
+    const uchar_t* input, uchar_t* output, const uchar_t* iv,
+    int length, const void* key);
+
+int cipher_decrypt_mode(
+    const char* cipher, const char* mode,
+    const uchar_t* input, uchar_t* output, const uchar_t* iv,
+    int length, const void* key);
+
+
+int has_iv(const char* mode) ;
+
+
 
 #endif
