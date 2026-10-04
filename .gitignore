@@ -61,3 +61,6 @@ hook/.dart_tool/
 
 # OS
 .DS_Store
+
+*.jks
+key.properties

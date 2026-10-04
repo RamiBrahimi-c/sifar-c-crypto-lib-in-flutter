@@ -60,6 +60,15 @@ You can watch a text like "hello there!" turn into garbage bytes `c9213ad33dc324
 - Save encrypted/decrypted images to the phone's gallery
 ---
 
+## Download
+
+Latest APK: [Releases](https://github.com/RamiBrahimi-c/sifar-c-crypto-lib-in-flutter/releases/latest)
+
+SHA-256 of the release APK is provided on the release page for verification.
+
+
+---
+
 ## Architecture
 
 ```
