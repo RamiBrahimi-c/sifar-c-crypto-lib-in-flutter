@@ -184,6 +184,11 @@ for signing.
 
 This project is a demonstration and learning exercise. The underlying cryptographic implementations have not been audited and should not be used to protect sensitive data. If you need real cryptography, use a vetted library.
 
+## Contributing
+
+Issues and bug reports are welcome. The C code is author-maintained; see
+[CONTRIBUTING.md](CONTRIBUTING.md) for details.
+
 ## License
 
 MIT — see [LICENSE](LICENSE).
