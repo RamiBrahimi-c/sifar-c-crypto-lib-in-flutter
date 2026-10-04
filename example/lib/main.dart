@@ -840,17 +840,20 @@ class _ImageTabState extends State<_ImageTab> {
 
       final orig = await File(p.input).readAsBytes();
       final dec  = await File(p.dec).readAsBytes();
+      // NOTE : a funny story behind this :
       final match = orig.length == dec.length &&
           List.generate(orig.length, (i) => orig[i] == dec[i])
               .every((x) => x);
+      // final match = ;
 
       setState(() {
         _busy = false;
         _encPath = p.enc;
         _decPath = p.dec;
-        _status = match
-            ? '✅ Round-trip OK (${orig.length} bytes)'
-            : '❌ Mismatch: orig=${orig.length} dec=${dec.length}';
+        _status = 'is this the original picture ????' ; 
+        // _status = match
+        //     ? '✅ Round-trip OK (${orig.length} bytes)'
+        //     : '❌ Mismatch: orig=${orig.length} dec=${dec.length}';
       });
     } catch (e) {
       _error(e);
