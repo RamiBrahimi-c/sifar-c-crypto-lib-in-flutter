@@ -89,9 +89,6 @@ void* xtea_new_key(const uchar_t* key, size_t key_len);
 void  xtea_destroy_key(void* k);
 
 
-// If you need to allocate a key struct from Dart:
-// (you'll need to know how big AesKey is — see note below)
-// size_t aes_key_size(void);
 
 int encrypt_image_file(char* name, uchar_t* input_path, uchar_t* output_path,
                        uchar_t* _key, size_t _key_len);

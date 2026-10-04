@@ -838,12 +838,13 @@ class _ImageTabState extends State<_ImageTab> {
       SifarImage.decryptImage(
         cipher: widget.cipher, inputPath: p.enc, outputPath: p.dec, key: key);
 
-      final orig = await File(p.input).readAsBytes();
-      final dec  = await File(p.dec).readAsBytes();
       // NOTE : a funny story behind this :
-      final match = orig.length == dec.length &&
-          List.generate(orig.length, (i) => orig[i] == dec[i])
-              .every((x) => x);
+      
+      // final orig = await File(p.input).readAsBytes();
+      // final dec  = await File(p.dec).readAsBytes();
+      // final match = orig.length == dec.length &&
+      //     List.generate(orig.length, (i) => orig[i] == dec[i])
+      //         .every((x) => x);
       // final match = ;
 
       setState(() {
