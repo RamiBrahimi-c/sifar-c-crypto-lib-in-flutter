@@ -162,6 +162,14 @@ my_native_wrapper/
 ```
 
 ---
+## Platform support
+
+Android only. The C library itself is portable — an iOS build would only
+need a target added in `hook/build.dart` plus an Apple developer account
+for signing.
+
+
+---
 
 ## Related
 
@@ -176,3 +184,6 @@ my_native_wrapper/
 
 This project is a demonstration and learning exercise. The underlying cryptographic implementations have not been audited and should not be used to protect sensitive data. If you need real cryptography, use a vetted library.
 
+## License
+
+MIT — see [LICENSE](LICENSE).
